@@ -5,7 +5,7 @@ interface JwtPayload extends JWTPayload {
     userid: string;
     isactive: boolean;
     user_name: string;
-    roleid: string;
+    role: string;
 }
 
 export async function middleware(request: NextRequest) {
@@ -14,20 +14,21 @@ export async function middleware(request: NextRequest) {
     if (token) {
         try {
             const user = await decodeToken(token);
+            console.log('user::: ', user);
 
-            if (user && user.roleid === '1') {
-                console.log('Admin accessed');
+            if (user && user.role === 'admin') {
                 return NextResponse.next();
             }
         } catch (error) {
             console.error('Token verification failed:', error);
+            return NextResponse.redirect(new URL('/login', request.url));
         }
     }
     return NextResponse.redirect(new URL('/login', request.url));
 }
 
 async function decodeToken(token: string): Promise<JwtPayload> {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+    const secret = new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET!);
     const { payload } = await jwtVerify(token, secret);
 
     console.log('Decoded token payload:', payload);
@@ -46,7 +47,7 @@ function isJwtPayload(payload: JWTPayload): payload is JwtPayload {
         'userid' in payload &&
         'isactive' in payload &&
         'user_name' in payload &&
-        'roleid' in payload
+        'role' in payload
     );
 }
 

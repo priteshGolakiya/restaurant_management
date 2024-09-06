@@ -28,7 +28,7 @@ export function withAuth<P = Record<string, unknown>>(
 
         function verifyToken(token: string): DecodedToken | null {
             try {
-                return jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
+                return jwt.verify(token, process.env.NEXT_PUBLIC_JWT_SECRET!) as DecodedToken;
             } catch (error) {
                 return null;
             }

@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
         await client.query('BEGIN');
 
-        const { rows } = await client.query('SELECT * FROM "Users" WHERE email = $1', [email]);
+        const { rows } = await client.query('SELECT * FROM "SuperAdmin" WHERE email = $1', [email]);
         const foundData = rows[0];
         console.log('foundData::: ', foundData);
 
@@ -35,11 +35,11 @@ export async function POST(req: Request) {
             userid: foundData.userid,
             isactive: foundData.isactive,
             user_name: foundData.user_name,
-            roleid: foundData.roleid
+            role: foundData.role
         };
 
 
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+        const secret = new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET!);
         const token = await new SignJWT(payload)
             .setProtectedHeader({ alg: 'HS256' })
             .setExpirationTime('1d')
@@ -54,10 +54,10 @@ export async function POST(req: Request) {
         }, { status: 201 });
 
         response.cookies.set('token', token, {
-            httpOnly: true,
-            sameSite: 'strict',
+            httpOnly: false,
             maxAge: 24 * 60 * 60,
-            path: '/'
+            path: '/',
+            sameSite: 'strict',
         });
 
 

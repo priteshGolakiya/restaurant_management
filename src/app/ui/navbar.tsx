@@ -1,47 +1,167 @@
 "use client";
-import { useState, ReactNode } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Coffee,
+  Utensils,
+  Calendar,
+  Users,
+  BarChart,
+  LucideIcon,
+} from "lucide-react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { jwtVerify, JWTPayload } from "jose";
 
 interface NavLinkProps {
   href: string;
-  children: ReactNode;
+  children: React.ReactNode;
+  icon: LucideIcon;
 }
 
-export default function RestaurantNavbar() {
+interface MobileNavLinkProps extends NavLinkProps {
+  onClick: () => void;
+}
+
+interface UserData extends JWTPayload {
+  user_name: string;
+}
+
+const NavLink: React.FC<NavLinkProps> = ({ href, children, icon: Icon }) => (
+  <Link
+    href={href}
+    className="group flex flex-col items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
+  >
+    <div className="bg-amber-100 p-2 rounded-full group-hover:bg-amber-200 transition-colors duration-300">
+      <Icon className="h-6 w-6" />
+    </div>
+    <span className="mt-1 text-xs font-medium">{children}</span>
+  </Link>
+);
+
+const MobileNavLink: React.FC<MobileNavLinkProps> = ({
+  href,
+  children,
+  icon: Icon,
+  onClick,
+}) => (
+  <Link
+    href={href}
+    onClick={onClick}
+    className="flex items-center space-x-3 text-amber-800 hover:bg-amber-100 px-4 py-3 rounded-lg transition-colors duration-300"
+  >
+    <Icon className="h-6 w-6" />
+    <span className="text-sm font-medium">{children}</span>
+  </Link>
+);
+
+export default function CreativeRestaurantNavbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      const token = Cookies.get("token");
+      if (token) {
+        try {
+          const secret = process.env.NEXT_PUBLIC_JWT_SECRET;
+          if (!secret) throw new Error("JWT secret is not defined");
+          const { payload } = await jwtVerify(
+            token,
+            new TextEncoder().encode(secret)
+          );
+          setUser(payload as UserData);
+        } catch (error) {
+          console.error("Error verifying token:", error);
+          setUser(null);
+        }
+      }
+    };
+
+    verifyToken();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.get("/api/logout");
+      Cookies.remove("token");
+      setUser(null);
+      router.push("/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <nav className="bg-amber-50 border-b border-amber-100 shadow-lg">
+    <nav className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-3xl mr-2">🍽️</span>
+            <Link
+              href="/"
+              className="flex-shrink-0 flex items-center space-x-2"
+            >
+              <div className="bg-amber-400 p-2 rounded-full">
+                <Utensils className="h-8 w-8 text-white" />
+              </div>
               <span className="text-2xl font-serif font-bold text-amber-800">
                 Gourmet<span className="text-emerald-700">Hub</span>
               </span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-4">
-            <NavLink href="/dashboard">Dashboard</NavLink>
-            <NavLink href="/menu">Menu</NavLink>
-            <NavLink href="/reservations">Reservations</NavLink>
-            <NavLink href="/staff">Staff</NavLink>
-            <NavLink href="/reports">Reports</NavLink>
-            <NavLink
-              href="/login"
-              // className="bg-emerald-600 text-white px-4 py-2 rounded-full hover:bg-emerald-700 transition duration-300 ease-in-out transform hover:scale-105"
-            >
-              Login
+          <div className="hidden md:flex items-center space-x-8">
+            <NavLink href="/dashboard" icon={Coffee}>
+              Dashboard
             </NavLink>
+            <NavLink href="/menu" icon={Utensils}>
+              Menu
+            </NavLink>
+            <NavLink href="/reservations" icon={Calendar}>
+              Reservations
+            </NavLink>
+            <NavLink href="/staff" icon={Users}>
+              Staff
+            </NavLink>
+            <NavLink href="/reports" icon={BarChart}>
+              Reports
+            </NavLink>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-amber-700">
+                  Welcome, <strong>{user.user_name}</strong>
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
+                >
+                  <LogOut className="h-5 w-5 mr-1" />
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
+              >
+                <User className="h-5 w-5 mr-1" />
+                Login
+              </Link>
+            )}
           </div>
 
           <div className="md:hidden flex items-center">
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-amber-800 hover:text-amber-900 hover:bg-amber-100 focus:outline-none"
+              onClick={toggleMenu}
+              className="inline-flex items-center justify-center p-2 rounded-md text-amber-800 hover:text-amber-600 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-amber-500 transition-colors duration-300"
             >
               {isOpen ? (
                 <X className="h-6 w-6" />
@@ -54,38 +174,46 @@ export default function RestaurantNavbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-amber-50">
-            <MobileNavLink href="/dashboard">Dashboard</MobileNavLink>
-            <MobileNavLink href="/menu">Menu</MobileNavLink>
-            <MobileNavLink href="/reservations">Reservations</MobileNavLink>
-            <MobileNavLink href="/staff">Staff</MobileNavLink>
-            <MobileNavLink href="/reports">Reports</MobileNavLink>
+        <div className="md:hidden bg-white rounded-b-2xl shadow-lg">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <MobileNavLink href="/dashboard" icon={Coffee} onClick={toggleMenu}>
+              Dashboard
+            </MobileNavLink>
+            <MobileNavLink href="/menu" icon={Utensils} onClick={toggleMenu}>
+              Menu
+            </MobileNavLink>
+            <MobileNavLink
+              href="/reservations"
+              icon={Calendar}
+              onClick={toggleMenu}
+            >
+              Reservations
+            </MobileNavLink>
+            <MobileNavLink href="/staff" icon={Users} onClick={toggleMenu}>
+              Staff
+            </MobileNavLink>
+            <MobileNavLink href="/reports" icon={BarChart} onClick={toggleMenu}>
+              Reports
+            </MobileNavLink>
+            {user ? (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  toggleMenu();
+                }}
+                className="w-full text-left text-amber-800 hover:bg-amber-100 px-4 py-3 rounded-lg transition-colors duration-300 flex items-center space-x-3"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="text-sm font-medium">Logout</span>
+              </button>
+            ) : (
+              <MobileNavLink href="/login" icon={User} onClick={toggleMenu}>
+                Login
+              </MobileNavLink>
+            )}
           </div>
         </div>
       )}
     </nav>
-  );
-}
-
-function NavLink({ href, children }: NavLinkProps) {
-  return (
-    <Link
-      href={href}
-      className="text-amber-800 hover:text-amber-900 hover:bg-amber-100 px-3 py-2 rounded-md text-sm font-medium transition duration-300 ease-in-out"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function MobileNavLink({ href, children }: NavLinkProps) {
-  return (
-    <Link
-      href={href}
-      className="block text-amber-800 hover:text-amber-900 hover:bg-amber-100 px-3 py-2 rounded-md text-base font-medium"
-    >
-      {children}
-    </Link>
   );
 }

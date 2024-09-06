@@ -12,7 +12,7 @@ interface PgError extends Error {
 export async function POST(req: Request) {
     let client: PoolClient | null = null;
     try {
-        const { fullName, userName, email, password } = await req.json();
+        const { fullName, userName, email, password, role } = await req.json();
         client = await typedPool.connect();
 
         await client.query('BEGIN');
@@ -33,11 +33,12 @@ export async function POST(req: Request) {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         const insertQuery = `
-            INSERT INTO "Users" (full_name, user_name, email, password, isactive)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO "Users" (full_name, user_name, email, password, isactive,role)
+            VALUES ($1, $2, $3, $4, $5,$6)
             RETURNING full_name, user_name, email, isactive;
         `;
-        const values = [fullName, userName, email, hashedPassword, true];
+        const finalRole = role || "3"
+        const values = [fullName, userName, email, hashedPassword, true, finalRole];
         const result = await client.query(insertQuery, values);
 
         await client.query('COMMIT');
