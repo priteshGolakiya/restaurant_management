@@ -12,9 +12,9 @@ import {
   Calendar,
   Users,
   BarChart,
+  ChefHat,
   LucideIcon,
 } from "lucide-react";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { jwtVerify, JWTPayload } from "jose";
 
@@ -28,8 +28,11 @@ interface MobileNavLinkProps extends NavLinkProps {
   onClick: () => void;
 }
 
-interface UserData extends JWTPayload {
+interface UserPayload extends JWTPayload {
+  userid: string;
+  isactive: boolean;
   user_name: string;
+  role: string;
 }
 
 const NavLink: React.FC<NavLinkProps> = ({ href, children, icon: Icon }) => (
@@ -38,9 +41,11 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children, icon: Icon }) => (
     className="group flex flex-col items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
   >
     <div className="bg-amber-100 p-2 rounded-full group-hover:bg-amber-200 transition-colors duration-300">
-      <Icon className="h-6 w-6" />
+      <Icon className="h-5 w-5 md:h-6 md:w-6" />
     </div>
-    <span className="mt-1 text-xs font-medium">{children}</span>
+    <span className="mt-1 text-xs font-medium hidden md:inline">
+      {children}
+    </span>
   </Link>
 );
 
@@ -55,14 +60,14 @@ const MobileNavLink: React.FC<MobileNavLinkProps> = ({
     onClick={onClick}
     className="flex items-center space-x-3 text-amber-800 hover:bg-amber-100 px-4 py-3 rounded-lg transition-colors duration-300"
   >
-    <Icon className="h-6 w-6" />
+    <Icon className="h-5 w-5" />
     <span className="text-sm font-medium">{children}</span>
   </Link>
 );
 
-export default function CreativeRestaurantNavbar() {
+export default function ResponsiveRestaurantNavbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<UserPayload | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -76,7 +81,7 @@ export default function CreativeRestaurantNavbar() {
             token,
             new TextEncoder().encode(secret)
           );
-          setUser(payload as UserData);
+          setUser(payload as UserPayload);
         } catch (error) {
           console.error("Error verifying token:", error);
           setUser(null);
@@ -89,7 +94,6 @@ export default function CreativeRestaurantNavbar() {
 
   const handleLogout = async () => {
     try {
-      await axios.get("/api/logout");
       Cookies.remove("token");
       setUser(null);
       router.push("/login");
@@ -101,24 +105,24 @@ export default function CreativeRestaurantNavbar() {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <nav className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg">
+    <nav className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20">
+        <div className="flex justify-between h-16 md:h-20">
           <div className="flex items-center">
             <Link
               href="/"
               className="flex-shrink-0 flex items-center space-x-2"
             >
               <div className="bg-amber-400 p-2 rounded-full">
-                <Utensils className="h-8 w-8 text-white" />
+                <ChefHat className="h-6 w-6 md:h-8 md:w-8 text-white" />
               </div>
-              <span className="text-2xl font-serif font-bold text-amber-800">
+              <span className="text-xl md:text-2xl font-serif font-bold text-amber-800">
                 Gourmet<span className="text-emerald-700">Hub</span>
               </span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             <NavLink href="/dashboard" icon={Coffee}>
               Dashboard
             </NavLink>
@@ -136,7 +140,7 @@ export default function CreativeRestaurantNavbar() {
             </NavLink>
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-amber-700">
+                <span className="text-sm text-amber-700 hidden lg:inline">
                   Welcome, <strong>{user.user_name}</strong>
                 </span>
                 <button
@@ -144,7 +148,7 @@ export default function CreativeRestaurantNavbar() {
                   className="flex items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
                 >
                   <LogOut className="h-5 w-5 mr-1" />
-                  Logout
+                  <span className="hidden lg:inline">Logout</span>
                 </button>
               </div>
             ) : (
@@ -153,7 +157,7 @@ export default function CreativeRestaurantNavbar() {
                 className="flex items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
               >
                 <User className="h-5 w-5 mr-1" />
-                Login
+                <span className="hidden lg:inline">Login</span>
               </Link>
             )}
           </div>
@@ -174,7 +178,7 @@ export default function CreativeRestaurantNavbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-white rounded-b-2xl shadow-lg">
+        <div className="md:hidden bg-white shadow-lg absolute w-full">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <MobileNavLink href="/dashboard" icon={Coffee} onClick={toggleMenu}>
               Dashboard
