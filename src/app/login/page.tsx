@@ -1,15 +1,14 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { LogIn, Home, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useRouter,  } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const router = useRouter();
-
 
   const [formData, setFormData] = useState({
     email: "",
@@ -36,7 +35,9 @@ const LoginPage = () => {
         email: "",
         password: "",
       });
-      router.push("/");
+
+      window.location.reload();
+      router.replace("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(error?.response?.data.message);
