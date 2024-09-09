@@ -5,20 +5,23 @@ import Link from "next/link";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const CreateUser = () => {
+const AddStaff = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     userName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    role: "",
   });
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -34,25 +37,28 @@ const CreateUser = () => {
     }
 
     try {
-      const response = await axios.post("/api/signup", {
+      const response = await axios.post("/api/staff", {
         fullName: formData.fullName,
         userName: formData.userName,
         email: formData.email,
         password: formData.password,
+        role: formData.role,
       });
 
-      toast.success(response.data.message || "SignUp successful!");
+      toast.success(response.data.message || "Staff created successfully!");
       setFormData({
         fullName: "",
         userName: "",
         email: "",
         password: "",
         confirmPassword: "",
+        role: "",
       });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setErrorMessage(
-          error.response?.data.message || "An error occurred during SignUp"
+          error.response?.data.message ||
+            "An error occurred during staff creation"
         );
       } else {
         setErrorMessage("An unexpected error occurred. Please try again.");
@@ -74,7 +80,7 @@ const CreateUser = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-200 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-md w-full p-8">
         <h2 className="text-3xl font-bold text-center text-purple-700 mb-6">
-          Join Us Today!
+          Create Staff
         </h2>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <input
@@ -143,6 +149,20 @@ const CreateUser = () => {
               {confirmPasswordVisible ? <EyeOff /> : <Eye />}
             </div>
           </div>
+          <select
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            required
+          >
+            <option value="" disabled>
+              Select Post
+            </option>
+            <option value="Manager">Manager</option>
+            <option value="Waiter">Waiter</option>
+          </select>
+
           {errorMessage && (
             <p className="text-red-600 text-sm">{errorMessage}</p>
           )}
@@ -152,10 +172,10 @@ const CreateUser = () => {
             disabled={isLoading}
           >
             {isLoading ? (
-              "Signing Up..."
+              "Creating Staff..."
             ) : (
               <>
-                <UserPlus className="mr-2" /> Sign Up
+                <UserPlus className="mr-2" /> Create Staff
               </>
             )}
           </button>
@@ -172,4 +192,4 @@ const CreateUser = () => {
   );
 };
 
-export default CreateUser;
+export default AddStaff;

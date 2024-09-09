@@ -123,19 +123,19 @@ export default function ResponsiveRestaurantNavbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-            <NavLink href="/dashboard" icon={Coffee}>
+            <NavLink href="/admin/dashboard" icon={Coffee}>
               Dashboard
             </NavLink>
-            <NavLink href="/menu" icon={Utensils}>
+            <NavLink href="/admin/menu" icon={Utensils}>
               Menu
             </NavLink>
-            <NavLink href="/reservations" icon={Calendar}>
+            <NavLink href="/admin/reservations" icon={Calendar}>
               Reservations
             </NavLink>
-            <NavLink href="/staff" icon={Users}>
+            <NavLink href="/admin/staff" icon={Users}>
               Staff
             </NavLink>
-            <NavLink href="/reports" icon={BarChart}>
+            <NavLink href="/admin/reports" icon={BarChart}>
               Reports
             </NavLink>
             {user ? (
