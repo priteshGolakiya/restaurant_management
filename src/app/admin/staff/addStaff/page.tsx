@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
-import { Home, UserPlus, Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
 import axios from "axios";
+import { ArrowBigLeftDash, Eye, EyeOff, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "react-toastify";
 
 const AddStaff = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: "",
     userName: "",
@@ -66,6 +67,10 @@ const AddStaff = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBack = () => {
+    router.back();
   };
 
   const togglePasswordVisibility = () => {
@@ -181,12 +186,12 @@ const AddStaff = () => {
           </button>
         </form>
 
-        <Link
-          href={"/"}
+        <div
+          onClick={handleBack}
           className="mt-4 w-full py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300 flex items-center justify-center"
         >
-          <Home className="mr-2" /> Back to Home
-        </Link>
+          <ArrowBigLeftDash className="mr-2" /> Go Back
+        </div>
       </div>
     </div>
   );
