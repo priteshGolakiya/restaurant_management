@@ -17,7 +17,6 @@ export async function middleware(request: NextRequest) {
 
     try {
         const user = await decodeToken(token);
-        console.log('Decoded user:', user);
 
         if (!user.isactive || user.role !== 'admin') {
             return NextResponse.json({ message: "Access denied. Admins only." }, { status: 403 });

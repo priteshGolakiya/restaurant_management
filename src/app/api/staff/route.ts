@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     let client: PoolClient | null = null;
     try {
         const { fullName, userName, email, password, role } = await req.json();
+
         client = await typedPool.connect();
 
         await client.query('BEGIN');
@@ -29,16 +30,28 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Email already exists' }, { status: 400 });
         }
 
+        let roleId;
+        if (role) {
+            const roleQuery = await client.query('SELECT roleid FROM "RoleMaster" WHERE LOWER(rolename) = LOWER($1) AND isactive = true', [role]);
+            if (roleQuery.rows.length > 0) {
+                roleId = roleQuery.rows[0].roleid;
+            } else {
+                await client.query('ROLLBACK');
+                return NextResponse.json({ message: 'Invalid or inactive role' }, { status: 400 });
+            }
+        } else {
+            roleId = 3;
+        }
+
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         const insertQuery = `
-            INSERT INTO "Users" (full_name, user_name, email, password, isactive,role)
-            VALUES ($1, $2, $3, $4, $5,$6)
-            RETURNING full_name, user_name, email, isactive;
+            INSERT INTO "Users" (full_name, user_name, email, password, isactive, role)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING full_name, user_name, email, isactive, role;
         `;
-        const finalRole = role || "3"
-        const values = [fullName, userName, email, hashedPassword, true, finalRole];
+        const values = [fullName, userName, email, hashedPassword, true, roleId];
         const result = await client.query(insertQuery, values);
 
         await client.query('COMMIT');
@@ -77,3 +90,33 @@ export async function POST(req: Request) {
         if (client) client.release();
     }
 }
+
+export async function GET() {
+    let client: PoolClient | null = null;
+    try {
+        client = await typedPool.connect();
+        const result = await client.query(`
+            SELECT u.userid, u.full_name, u.user_name, u.email, rm.rolename as role
+            FROM "Users" u
+            LEFT JOIN "RoleMaster" rm ON u.role = rm.roleid
+        `);
+
+        const staff = result.rows;
+
+        return NextResponse.json({
+            success: true,
+            staff,
+        }, { status: 200 });
+    } catch (error) {
+        console.error("Error fetching staff:", error);
+        return NextResponse.json({
+            success: false,
+            message: "Error fetching staff data"
+        }, { status: 500 });
+    } finally {
+        if (client) client.release();
+    }
+}
+
+
+
