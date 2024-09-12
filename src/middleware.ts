@@ -8,6 +8,8 @@ interface JwtPayload extends JWTPayload {
     role: string;
 }
 
+
+
 export async function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
 

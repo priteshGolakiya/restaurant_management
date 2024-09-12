@@ -62,7 +62,7 @@ export const ItemHoverEffect = ({ items }: ItemsHoverEffectProps) => {
           <p className="text-white text-sm mt-2">{item.description}</p>
           <div className="text-white mt-2">
             <span className="text-xl font-semibold">
-              ${item.price.toFixed(2)}
+              ${Number (item.price).toFixed(2)}
             </span>
             <div className="mt-2">
               {item.isactive ? (

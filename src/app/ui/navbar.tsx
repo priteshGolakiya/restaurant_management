@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -16,7 +17,7 @@ import {
   LucideIcon,
 } from "lucide-react";
 import Cookies from "js-cookie";
-import { jwtVerify, JWTPayload } from "jose";
+import { useAppSelector } from "@/lib/redux/hooks/hooks";
 
 interface NavLinkProps {
   href: string;
@@ -28,7 +29,7 @@ interface MobileNavLinkProps extends NavLinkProps {
   onClick: () => void;
 }
 
-interface UserPayload extends JWTPayload {
+interface UserPayload {
   userid: string;
   isactive: boolean;
   user_name: string;
@@ -70,27 +71,11 @@ export default function ResponsiveRestaurantNavbar() {
   const [user, setUser] = useState<UserPayload | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const verifyToken = async () => {
-      const token = Cookies.get("token");
-      if (token) {
-        try {
-          const secret = process.env.NEXT_PUBLIC_JWT_SECRET;
-          if (!secret) throw new Error("JWT secret is not defined");
-          const { payload } = await jwtVerify(
-            token,
-            new TextEncoder().encode(secret)
-          );
-          setUser(payload as UserPayload);
-        } catch (error) {
-          console.error("Error verifying token:", error);
-          setUser(null);
-        }
-      }
-    };
+  const userDetails = useAppSelector((state) => state.user.items);
 
-    verifyToken();
-  }, []);
+  useEffect(() => {
+    setUser(userDetails);
+  }, [userDetails]);
 
   const handleLogout = async () => {
     try {
@@ -138,7 +123,7 @@ export default function ResponsiveRestaurantNavbar() {
             <NavLink href="/admin/reports" icon={BarChart}>
               Reports
             </NavLink>
-            {user ? (
+            {user?.user_name ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-amber-700 hidden lg:inline">
                   Welcome, <strong>{user.user_name}</strong>
@@ -180,23 +165,39 @@ export default function ResponsiveRestaurantNavbar() {
       {isOpen && (
         <div className="md:hidden bg-white shadow-lg absolute w-full">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <MobileNavLink href="/dashboard" icon={Coffee} onClick={toggleMenu}>
+            <MobileNavLink
+              href="/admin/dashboard"
+              icon={Coffee}
+              onClick={toggleMenu}
+            >
               Dashboard
             </MobileNavLink>
-            <MobileNavLink href="/menu" icon={Utensils} onClick={toggleMenu}>
+            <MobileNavLink
+              href="/admin/menu"
+              icon={Utensils}
+              onClick={toggleMenu}
+            >
               Menu
             </MobileNavLink>
             <MobileNavLink
-              href="/reservations"
+              href="/admin/reservations"
               icon={Calendar}
               onClick={toggleMenu}
             >
               Reservations
             </MobileNavLink>
-            <MobileNavLink href="/staff" icon={Users} onClick={toggleMenu}>
+            <MobileNavLink
+              href="/admin/staff"
+              icon={Users}
+              onClick={toggleMenu}
+            >
               Staff
             </MobileNavLink>
-            <MobileNavLink href="/reports" icon={BarChart} onClick={toggleMenu}>
+            <MobileNavLink
+              href="/admin/reports"
+              icon={BarChart}
+              onClick={toggleMenu}
+            >
               Reports
             </MobileNavLink>
             {user ? (

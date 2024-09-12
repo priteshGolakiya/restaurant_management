@@ -20,7 +20,6 @@ export async function POST(req: Request) {
 
         const { rows } = await client.query('SELECT * FROM "SuperAdmin" WHERE email = $1', [email]);
         const foundData = rows[0];
-        console.log('foundData::: ', foundData);
 
         if (!foundData) {
             return NextResponse.json({ message: 'User not found', success: false }, { status: 404 });
@@ -49,7 +48,7 @@ export async function POST(req: Request) {
 
         const response = NextResponse.json({
             message: "Login successful",
-            foundData,
+            payload,
             success: true,
         }, { status: 201 });
 
