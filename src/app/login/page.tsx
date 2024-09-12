@@ -1,22 +1,34 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LogIn, Home, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAppDispatch } from "@/lib/redux/hooks/hooks";
+import { setUserDetails } from "@/lib/redux/slice/userSlice";
 
 const LoginPage = () => {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const message = searchParams.get("message");
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (message) {
+      setErrorMessage(message);
+    }
+  }, [message]);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,12 +43,15 @@ const LoginPage = () => {
       const response = await axios.post("/api/login", formData);
 
       toast.success(response.data.message);
+
       setFormData({
         email: "",
         password: "",
       });
 
-      window.location.reload();
+      setErrorMessage("");
+      // window.location.reload();
+      dispatch(setUserDetails(response.data.payload));
       router.replace("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
