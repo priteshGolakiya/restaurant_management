@@ -11,6 +11,7 @@ export async function POST(request: Request) {
         await client.query('BEGIN');
 
         const { itemname, description, price, categoryid, itemimage } = await request.json();
+        const numbcategoryid = Number(categoryid)
 
         if (!itemname || typeof itemname !== 'string') {
             return new NextResponse('Invalid item name', { status: 400 });
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
         if (typeof price !== 'number' || price <= 0) {
             return new NextResponse('Invalid price', { status: 400 });
         }
-        if (typeof categoryid !== 'number' || categoryid <= 0) {
+        if (typeof numbcategoryid !== 'number' || numbcategoryid <= 0) {
             return new NextResponse('Invalid category ID', { status: 400 });
         }
         if (itemimage && typeof itemimage !== 'string') {
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
         }
 
         const insertQuery = 'INSERT INTO "ItemMaster" ("itemname", "description", "price", "categoryid", "itemimage", "isactive") VALUES ($1, $2, $3, $4, $5, TRUE) RETURNING *';
-        const insertResult = await client.query(insertQuery, [itemname, description, price, categoryid, itemJson]);
+        const insertResult = await client.query(insertQuery, [itemname, description, price, numbcategoryid, itemJson]);
         const itemData = insertResult.rows[0];
 
         await client.query('COMMIT');

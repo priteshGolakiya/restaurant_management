@@ -45,7 +45,7 @@ export const CategoryHoverEffect = ({ items }: CategoryHoverEffectProps) => {
         </AnimatePresence>
         <Card>
           <CardTitle>{item.categoryname}</CardTitle>{" "}
-          <div className="text-white m-3">
+          {/* <div className="text-white m-3">
             {item.isactive ? (
               <span className="bg-green-500 text-white font-semibold py-1 px-3 rounded-lg shadow-md">
                 Active
@@ -55,7 +55,7 @@ export const CategoryHoverEffect = ({ items }: CategoryHoverEffectProps) => {
                 Disabled
               </span>
             )}
-          </div>
+          </div> */}
         </Card>
       </Link>
     ));

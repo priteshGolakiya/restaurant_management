@@ -2,20 +2,20 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const AddCategory = () => {
-  const [formData, setFormData] = useState({
-    category: "",
-  });
+  const [category, setCategory] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(formData);
+    const response = await axios.post("/api/category", {
+      categoryName: category,
+    });
+    if (response.data.success) {
+      toast.success(response.data.messages);
+    }
   };
 
   return (
@@ -57,8 +57,8 @@ const AddCategory = () => {
               type="text"
               id="Category"
               name="Category"
-              value={formData.category}
-              onChange={handleInputChange}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full px-4 py-2 rounded-full bg-white bg-opacity-20 border-2 border-transparent focus:border-yellow-300 focus:outline-none transition-all duration-300 text-white placeholder-gray-300"
               placeholder="Enter item Category"
               required
