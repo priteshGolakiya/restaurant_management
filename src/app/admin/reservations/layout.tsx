@@ -1,54 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  LayoutList,
-  FolderTree,
-  PlusCircle,
-  FileEdit,
-  Menu,
-  X,
-} from "lucide-react";
-import ItemList from "@/app/components/menu/ItemList";
-import CategoryList from "@/app/components/menu/CategoryList";
-import AddCategory from "@/app/components/menu/AddCategory";
-import AddItem from "@/app/components/menu/AddItem";
-import axios from "axios";
+import { List, Menu, PlusCircle, Settings, X } from "lucide-react";
+import { useState } from "react";
 
 type SidebarOption =
-  | "category-list"
-  | "item-list"
-  | "add-category"
-  | "add-item";
-
-type Category = {
-  categoryid: string;
-  categoryname: string;
-  isactive: boolean;
-};
-
-type Item = {
-  itemid: string;
-  itemname: string;
-  description: string;
-  price: number;
-  categoryid: string;
-  isactive: boolean;
-  itemimage: {
-    img1: string;
-  };
-};
+  | "reservation-list"
+  | "add-reservation"
+  | "reservation-settings";
 
 const links = [
-  { label: "Items", id: "item-list", icon: LayoutList },
-  { label: "Categories", id: "category-list", icon: FolderTree },
-  { label: "Add Category", id: "add-category", icon: PlusCircle },
-  { label: "Add Item", id: "add-item", icon: FileEdit },
+  { label: "Reservations", id: "reservation-list", icon: List },
+  { label: "Add Reservation", id: "add-reservation", icon: PlusCircle },
+  { label: "Settings", id: "reservation-settings", icon: Settings },
 ];
 
-export default function SidebarDemo() {
+export default function Layout() {
   const [selectedOption, setSelectedOption] =
-    useState<SidebarOption>("item-list");
+    useState<SidebarOption>("reservation-list");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -58,37 +26,14 @@ export default function SidebarDemo() {
     setSidebarOpen(false);
   };
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
-
-  const fetchData = async () => {
-    try {
-      const categoriesResponse = await axios.get(`/api/category`);
-      const itemsResponse = await axios.get(`/api/items`);
-
-      setItems(itemsResponse.data);
-      setCategories(categoriesResponse.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedOption === "item-list" || "category-list" || "add-item") {
-      fetchData();
-    }
-  }, [selectedOption]);
-
   const renderComponent = () => {
     switch (selectedOption) {
-      case "item-list":
-        return <ItemList items={items} categories={categories} fetchData={fetchData} />;
-      case "category-list":
-        return <CategoryList categories={categories} />;
-      case "add-category":
-        return <AddCategory />;
-      case "add-item":
-        return <AddItem categories={categories} />;
+      case "reservation-list":
+        return <div className="">Reservation List Component</div>;
+      case "add-reservation":
+        return <div className="">Add Reservation Component</div>;
+      case "reservation-settings":
+        return <div className="">Reservation Settings Component</div>;
       default:
         return <div className="text-lavender-700">Please select an option</div>;
     }
@@ -96,7 +41,6 @@ export default function SidebarDemo() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-lavender-50">
-      {/* Sidebar for larger screens */}
       <aside className="hidden lg:flex flex-col w-50 bg-white shadow-md">
         <nav className="flex-1 px-4 py-6">
           {links.map((link) => (
@@ -169,7 +113,7 @@ export default function SidebarDemo() {
             className="lg:hidden mb-4 p-2 rounded-md bg-white text-lavender-700 hover:bg-lavender-100 shadow-md"
           >
             <Menu className="w-6 h-6" />
-          </button>
+            </button>
 
           <h1 className="text-2xl sm:text-3xl font-bold text-lavender-900 mb-6">
             {links.find((link) => link.id === selectedOption)?.label}

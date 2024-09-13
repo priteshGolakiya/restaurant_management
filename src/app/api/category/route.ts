@@ -26,9 +26,16 @@ export async function POST(request: Request) {
         console.log('insertResult::: ', insertResult);
         const categoryId = insertResult.rows[0];
 
+        if (!categoryId || !categoryId.categoryid) {
+            await client.query('ROLLBACK');
+            return new NextResponse('Failed to insert category', {
+                status: 500,
+            });
+        }
+
         await client.query('COMMIT');
 
-        return new NextResponse(JSON.stringify({ categoryId }), {
+        return NextResponse.json({ messages: `Category created with name of ${categoryName}`, success: true }, {
             status: 201,
         });
 
@@ -76,3 +83,5 @@ export async function GET() {
         if (client) client.release();
     }
 }
+
+

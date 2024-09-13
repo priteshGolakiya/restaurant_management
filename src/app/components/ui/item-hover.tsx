@@ -1,5 +1,7 @@
 "use client";
+
 import { cn } from "@/lib/utils";
+import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,6 +25,24 @@ interface ItemsHoverEffectProps {
 
 export const ItemHoverEffect = ({ items }: ItemsHoverEffectProps) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const updateItemStatus = async (itemid: string, isactive: boolean) => {
+    try {
+      const response = await axios.put(`/api/items/${itemid}`, {
+        isactive,
+      });
+
+      if (!response.data) {
+        throw new Error("Failed to update item");
+      }
+    } catch (error) {
+      console.error("Error updating item status:", error);
+    }
+  };
+
+  const handleToggleStatus = (itemid: string, currentStatus: boolean) => {
+    updateItemStatus(itemid, !currentStatus);
+  };
 
   const renderContent = () => {
     return items.map((item, idx) => (
@@ -54,26 +74,27 @@ export const ItemHoverEffect = ({ items }: ItemsHoverEffectProps) => {
           <Image
             src={item.itemimage.img1}
             alt={item.itemname}
-            className="w-full h-40 object-cover rounded-lg"
+            className="w-full h-44 object-contain rounded-lg"
             width={500}
             height={200}
           />
           <CardTitle className="mt-4">{item.itemname}</CardTitle>
-          <p className="text-white text-sm mt-2">{item.description}</p>
-          <div className="text-white mt-2">
+          <div className="h-28 overflow-hidden">
+            <p className="text-white text-sm mt-2">{item.description}</p>
+          </div>
+          <div className="text-white mt-4 flex justify-between items-center">
             <span className="text-xl font-semibold">
-              ${Number (item.price).toFixed(2)}
+              ₹{Number(item.price).toFixed(2)}
             </span>
-            <div className="mt-2">
-              {item.isactive ? (
-                <span className="bg-green-500 text-white font-semibold py-1 px-3 rounded-lg shadow-md">
-                  Active
-                </span>
-              ) : (
-                <span className="bg-red-500 text-white font-semibold py-1 px-3 rounded-lg shadow-md">
-                  Disabled
-                </span>
-              )}
+            <div>
+              <button
+                className={`bg-${
+                  item.isactive ? "green" : "red"
+                }-500 text-white text-xs font-semibold py-2 px-3 rounded-lg shadow-md`}
+                onClick={() => handleToggleStatus(item.itemid, item.isactive)}
+              >
+                {item.isactive ? "Active" : "Disabled"}
+              </button>
             </div>
           </div>
         </Card>
@@ -84,7 +105,7 @@ export const ItemHoverEffect = ({ items }: ItemsHoverEffectProps) => {
   return (
     <div
       className={cn(
-        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-10 "
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-10"
       )}
     >
       {renderContent()}
@@ -102,11 +123,11 @@ export const Card = ({
   return (
     <div
       className={cn(
-        "rounded-2xl h-full w-full p-4 overflow-hidden bg-[#667e6c] border border-transparent dark:border-white/[0.2] group-hover:border-[#7a85d1] relative z-20",
+        "rounded-2xl h-full w-full p-4 overflow-hidden bg-[#667e6c] border border-transparent dark:border-white/[0.2] group-hover:border-[#7a85d1] relative z-20 flex flex-col",
         className
       )}
     >
-      <div className="relative z-50">
+      <div className="relative z-50 flex-grow">
         <div className="p-4">{children}</div>
       </div>
     </div>
