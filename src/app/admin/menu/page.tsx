@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import ItemList from "@/app/components/menu/ItemList";
 import CategoryList from "@/app/components/menu/CategoryList";
-import AddCategory from "@/app/components/menu/AddCategory";
+import AddTable from "@/app/components/menu/AddCategory";
 import AddItem from "@/app/components/menu/AddItem";
 import axios from "axios";
 
@@ -82,11 +82,17 @@ export default function SidebarDemo() {
   const renderComponent = () => {
     switch (selectedOption) {
       case "item-list":
-        return <ItemList items={items} categories={categories} fetchData={fetchData} />;
+        return (
+          <ItemList
+            items={items}
+            categories={categories}
+            fetchData={fetchData}
+          />
+        );
       case "category-list":
         return <CategoryList categories={categories} />;
       case "add-category":
-        return <AddCategory />;
+        return <AddTable />;
       case "add-item":
         return <AddItem categories={categories} />;
       default:
