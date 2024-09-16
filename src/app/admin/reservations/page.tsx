@@ -3,21 +3,21 @@
 import AddTable from "@/app/components/reservations/AddTable";
 import TableList from "@/app/components/reservations/TableList";
 import axios from "axios";
-import { List, Menu, PlusCircle, Settings, X } from "lucide-react";
+import { List, Menu, PlusCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-type SidebarOption = "table-list" | "add-table" | "reservation-settings";
+type SidebarOption = "table-list" | "add-table";
 
 const links = [
   { label: "Table List", id: "table-list", icon: List },
   { label: "Add Table", id: "add-table", icon: PlusCircle },
-  { label: "Settings", id: "reservation-settings", icon: Settings },
 ];
 
 export default function Reservations() {
   const [selectedOption, setSelectedOption] =
     useState<SidebarOption>("table-list");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -32,20 +32,28 @@ export default function Reservations() {
     try {
       const response = await axios.get("/api/table");
       setTables(response.data.result);
+      setIsLoading(false);
     } catch (error) {
       console.log("error :>> ", error);
     }
   };
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (selectedOption === "table-list") {
+      fetchData();
+    }
+  }, [selectedOption]);
 
   const renderComponent = () => {
     switch (selectedOption) {
       case "table-list":
         return (
           <div className="">
-            <TableList tables={tables} />
+            <TableList
+              tables={tables}
+              isLoading={isLoading}
+              fetchData={fetchData}
+            />
           </div>
         );
       case "add-table":
@@ -54,8 +62,6 @@ export default function Reservations() {
             <AddTable />
           </div>
         );
-      case "reservation-settings":
-        return <div className="">Reservation Settings Component</div>;
       default:
         return <div className="text-lavender-700">Please select an option</div>;
     }
