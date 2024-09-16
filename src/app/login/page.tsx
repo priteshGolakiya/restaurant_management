@@ -4,9 +4,10 @@ import { LogIn, Home, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/lib/redux/hooks/hooks";
 import { setUserDetails } from "@/lib/redux/slice/userSlice";
+import { useRouter } from "next/router";
 
 const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -50,9 +51,9 @@ const LoginPage = () => {
       });
 
       setErrorMessage("");
-      // window.location.reload();
+
       dispatch(setUserDetails(response.data.payload));
-      router.replace("/");
+      router.push("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(error?.response?.data.message);
