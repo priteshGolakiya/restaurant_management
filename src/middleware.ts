@@ -8,28 +8,32 @@ interface JwtPayload extends JWTPayload {
     role: string;
 }
 
-
-
 export async function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
 
     if (!token) {
-        return NextResponse.json({ message: "Please provide a valid token" }, { status: 403 });
+        return redirectToLogin(request, "Please log in to access this page");
     }
 
     try {
         const user = await decodeToken(token);
 
         if (!user.isactive || user.role !== 'admin') {
-            return NextResponse.json({ message: "Access denied. Admins only." }, { status: 403 });
+            return redirectToLogin(request, "Access denied. Admins only.");
         }
 
         return NextResponse.next();
-
     } catch (error) {
         console.error('Token verification failed:', error);
-        return NextResponse.json({ message: "Invalid or expired token" }, { status: 403 });
+        return redirectToLogin(request, "Invalid or expired token. Please log in again.");
     }
+}
+
+function redirectToLogin(request: NextRequest, message: string) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('message', message);
+    return NextResponse.redirect(url);
 }
 
 async function decodeToken(token: string): Promise<JwtPayload> {

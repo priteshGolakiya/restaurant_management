@@ -25,23 +25,35 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ success: false, message: "No items found with this ID" }, { status: 404 });
         }
 
-        const fieldsToUpdate: string[] = [];
-        const values: unknown[] = [];
+        const updateFields: string[] = [];
+        const updateValues: unknown[] = [];
+        let parameterIndex = 1;
 
         if (typeof isActive === 'boolean') {
-            fieldsToUpdate.push(`"isActive" = $${fieldsToUpdate.length + 1}`);
-            values.push(isActive);
+            updateFields.push(`"isActive" = $${parameterIndex}`);
+            updateValues.push(isActive);
+            parameterIndex++;
         }
 
         if (typeof isReserved === 'boolean') {
-            fieldsToUpdate.push(`"isReserved" = $${fieldsToUpdate.length + 1}`);
-            values.push(isReserved);
+            if (isReserved === false) {
+                updateFields.push(`"isReserved" = $${parameterIndex}`);
+                updateFields.push(`"time_to" = NULL`);
+                updateFields.push(`"time_end" = NULL`);
+                updateFields.push(`"note" = NULL`);
+                updateValues.push(isReserved);
+                parameterIndex++;
+            } else {
+                updateFields.push(`"isReserved" = $${parameterIndex}`);
+                updateValues.push(isReserved);
+                parameterIndex++;
+            }
         }
 
-        if (fieldsToUpdate.length > 0) {
-            const updateQuery = `UPDATE "TableMaster" SET ${fieldsToUpdate.join(', ')} WHERE tableid = $${fieldsToUpdate.length + 1}`;
-            values.push(result.rows[0].tableid);
-            await client.query(updateQuery, values);
+        if (updateFields.length > 0) {
+            const updateQuery = `UPDATE "TableMaster" SET ${updateFields.join(', ')} WHERE tableid = $${parameterIndex}`;
+            updateValues.push(tableid);
+            await client.query(updateQuery, updateValues);
         }
 
         await client.query('COMMIT');

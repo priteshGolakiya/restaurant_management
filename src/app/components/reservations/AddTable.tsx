@@ -17,9 +17,11 @@ const AddTable = () => {
         tableNumber,
       });
       if (response.data.success) {
-        toast.success(response.data.messages);
+        toast.success(response.data.message);
+        setNoOfSeats(0);
+        setTableNumber(0);
       } else {
-        toast.error(response.data.messages || "An error occurred");
+        toast.error(response.data.message || "An error occurred");
       }
     } catch (error) {
       toast.error("An error occurred");
