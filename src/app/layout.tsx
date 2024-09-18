@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Navbar from "./ui/navbar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import StoreProvider from "./StoreProvider";
+import ConditionalLayout from "./ConditionalLayout";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -45,8 +45,7 @@ export default function RootLayout({
             pauseOnHover
             theme="light"
           />
-          <Navbar />
-          {children}
+          <ConditionalLayout>{children}</ConditionalLayout>
         </StoreProvider>
       </body>
     </html>

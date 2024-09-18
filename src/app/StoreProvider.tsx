@@ -1,27 +1,9 @@
-// "use client";
-// import { AppStore, makeStore } from "@/lib/redux/store";
-// import { useRef } from "react";
-// import { Provider } from "react-redux";
 
-// export default function StoreProvider({
-//   children,
-// }: {
-//   children: React.ReactNode;
-// }) {
-//   const storeRef = useRef<AppStore>();
-//   if (!storeRef.current) {
-//     storeRef.current = makeStore();
-
-//     // storeRef.current.dispatch(setUserDetails());
-//   }
-
-//   return <Provider store={storeRef.current}>{children}</Provider>;
-// }
 
 "use client";
 
 import { AppStore, makeStore } from "@/lib/redux/store";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import Cookies from "js-cookie";
 import { jwtVerify } from "jose";
@@ -33,6 +15,7 @@ export default function StoreProvider({
   children: React.ReactNode;
 }) {
   const storeRef = useRef<AppStore>();
+  const [isLoading, setIsLoading] = useState(true);
 
   if (!storeRef.current) {
     storeRef.current = makeStore();
@@ -71,10 +54,15 @@ export default function StoreProvider({
           );
         }
       }
+      setIsLoading(false);
     };
 
     verifyToken();
   }, []);
+
+  if (isLoading) {
+    return null; // or a loading spinner
+  }
 
   return <Provider store={storeRef.current}>{children}</Provider>;
 }
