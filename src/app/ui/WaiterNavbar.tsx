@@ -66,7 +66,7 @@ const MobileNavLink: React.FC<MobileNavLinkProps> = ({
   </Link>
 );
 
-export default function ResponsiveRestaurantNavbar() {
+export default function WaiterNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<UserPayload | null>(null);
   const router = useRouter();
