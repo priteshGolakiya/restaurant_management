@@ -1,4 +1,5 @@
 "use client";
+import summaryAPI from "@/lib/summaryAPI";
 import axios from "axios";
 import { ArrowBigLeftDash, Eye, EyeOff, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -38,7 +39,7 @@ const AddStaff = () => {
     }
 
     try {
-      const response = await axios.post("/api/staff", {
+      const response = await axios.post(summaryAPI.admin.staff.commonUlr, {
         fullName: formData.fullName,
         userName: formData.userName,
         email: formData.email,

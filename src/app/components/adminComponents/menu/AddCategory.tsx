@@ -4,15 +4,19 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
+import summaryAPI from "@/lib/summaryAPI";
 
 const AddCategory = () => {
   const [category, setCategory] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await axios.post("/api/category", {
-      categoryName: category,
-    });
+    const response = await axios.post(
+      summaryAPI.admin.category.createCategory.url,
+      {
+        categoryName: category,
+      }
+    );
     if (response.data.success) {
       toast.success(response.data.messages);
     }

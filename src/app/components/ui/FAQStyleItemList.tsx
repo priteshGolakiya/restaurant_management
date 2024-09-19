@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
+import summaryAPI from "@/lib/summaryAPI";
 
 type Item = {
   itemid: string;
@@ -47,9 +48,12 @@ const FAQStyleItemList: React.FC<FAQStyleItemListProps> = ({
   }) => {
     const newStatus = !isactive;
     try {
-      const response = await axios.put(`/api/items/${itemid}`, {
-        isactive: newStatus,
-      });
+      const response = await axios.put(
+        `${summaryAPI.admin.items.commonUlr}/${itemid}`,
+        {
+          isactive: newStatus,
+        }
+      );
       if (!response.data.success) {
         console.error(response.data);
       }

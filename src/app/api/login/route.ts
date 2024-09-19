@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { PoolClient, Pool } from 'pg';
 import pool from '@/lib/db';
@@ -18,7 +19,13 @@ export async function POST(req: Request) {
 
         await client.query('BEGIN');
 
-        const { rows } = await client.query('SELECT * FROM "SuperAdmin" WHERE email = $1', [email]);
+        const query = `
+            SELECT u.*, r.rolename
+            FROM "Users" u
+            JOIN "RoleMaster" r ON u.role = r.roleid
+            WHERE u.email = $1
+        `;
+        const { rows } = await client.query(query, [email]);
         const foundData = rows[0];
 
         if (!foundData) {
@@ -34,9 +41,8 @@ export async function POST(req: Request) {
             userid: foundData.userid,
             isactive: foundData.isactive,
             user_name: foundData.user_name,
-            role: foundData.role
+            role: foundData.rolename
         };
-
 
         const secret = new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET!);
         const token = await new SignJWT(payload)
@@ -58,7 +64,6 @@ export async function POST(req: Request) {
             path: '/',
             sameSite: 'strict',
         });
-
 
         return response;
 
@@ -84,5 +89,3 @@ export async function POST(req: Request) {
         if (client) client.release();
     }
 }
-
-

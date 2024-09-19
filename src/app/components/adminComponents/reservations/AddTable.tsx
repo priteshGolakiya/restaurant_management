@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
+import summaryAPI from "@/lib/summaryAPI";
 
 const AddTable = () => {
   const [noOfSeats, setNoOfSeats] = useState<number>(0);
@@ -12,10 +13,13 @@ const AddTable = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/table", {
-        noOfSeats,
-        tableNumber,
-      });
+      const response = await axios.post(
+        summaryAPI.admin.table.createTable.url,
+        {
+          noOfSeats,
+          tableNumber,
+        }
+      );
       if (response.data.success) {
         toast.success(response.data.message);
         setNoOfSeats(0);

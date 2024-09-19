@@ -1,10 +1,10 @@
 "use client";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
-import AdminNavbar from "./ui/AdminNavbar";
-import WaiterNavbar from "./ui/WaiterNavbar";
-import ManagerNavbar from "./ui/ManagerNavbar";
+import AdminNavbar from "./ui/navbar/AdminNavbar";
+import ManagerNavbar from "./ui/navbar/ManagerNavbar";
+import WaiterNavbar from "./ui/navbar/WaiterNavbar";
 
 interface User {
   userid: string;
@@ -26,8 +26,14 @@ export default function ConditionalLayout({
   const user = useSelector((state: RootState) => state.user.items);
   const router = useRouter();
   const pathname = usePathname();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      return;
+    }
+
     if (!user.userid && pathname !== "/login") {
       router.push("/login");
     } else if (user.userid && user.isactive) {
@@ -38,7 +44,11 @@ export default function ConditionalLayout({
         router.push(allowedPaths[0]);
       }
     }
-  }, [user, pathname, router]);
+  }, [user, pathname, router, isInitialLoad]);
+
+  if (isInitialLoad) {
+    return null;
+  }
 
   if (!user.userid && pathname !== "/login") {
     return null;
@@ -66,15 +76,16 @@ function renderNavbar(role: string) {
 }
 
 function getAllowedPaths(role: string): string[] {
+  const commonPaths = ["/reserve"];
   switch (role) {
     case "admin":
-      return ["/admin", "/admin/menu"];
+      return ["/admin", ...commonPaths];
     case "waiter":
-      return ["/waiter"];
+      return ["/waiter", ...commonPaths];
     case "manager":
-      return ["/manager"];
+      return ["/manager", ...commonPaths];
     default:
-      return ["/"];
+      return commonPaths;
   }
 }
 
