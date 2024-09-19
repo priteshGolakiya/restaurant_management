@@ -1,4 +1,6 @@
 import StaffComponent from "@/app/components/StaffComponent";
+import summaryAPI from "@/lib/summaryAPI";
+import axios from "axios";
 
 interface StaffType {
   userid: number;
@@ -12,16 +14,15 @@ const StaffPage = async () => {
   let staff: StaffType[] = [];
 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/staff`,
+    const response = await axios.get<{ staff: StaffType[] }>(
+      `${process.env.NEXT_PUBLIC_API_URL}/${summaryAPI.admin.staff.getallStaff.url}`,
       {
-        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-store",
+        },
       }
     );
-    if (response.ok) {
-      const data = await response.json();
-      staff = data.staff;
-    }
+    staff = response.data.staff;
   } catch (error) {
     console.error("Error fetching staff data:", error);
   }

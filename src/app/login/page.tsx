@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppDispatch } from "@/lib/redux/hooks/hooks";
 import { setUserDetails } from "@/lib/redux/slice/userSlice";
+import summaryAPI from "@/lib/summaryAPI";
 
 const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -40,7 +41,7 @@ const LoginPage = () => {
     setErrorMessage("");
 
     try {
-      const response = await axios.post("/api/login", formData);
+      const response = await axios.post(summaryAPI.common.login.url, formData);
 
       toast.success(response.data.message);
 

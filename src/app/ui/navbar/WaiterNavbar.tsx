@@ -1,23 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  Menu,
-  X,
-  User,
-  LogOut,
-  Coffee,
-  Utensils,
-  Calendar,
-  Users,
-  BarChart,
-  ChefHat,
-  LucideIcon,
-} from "lucide-react";
-import Cookies from "js-cookie";
 import { useAppSelector } from "@/lib/redux/hooks/hooks";
+import Cookies from "js-cookie";
+import { ChefHat, LogOut, LucideIcon, Menu, User, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 interface NavLinkProps {
   href: string;
@@ -36,19 +24,19 @@ interface UserPayload {
   role: string;
 }
 
-const NavLink: React.FC<NavLinkProps> = ({ href, children, icon: Icon }) => (
-  <Link
-    href={href}
-    className="group flex flex-col items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
-  >
-    <div className="bg-amber-100 p-2 rounded-full group-hover:bg-amber-200 transition-colors duration-300">
-      <Icon className="h-5 w-5 md:h-6 md:w-6" />
-    </div>
-    <span className="mt-1 text-xs font-medium hidden md:inline">
-      {children}
-    </span>
-  </Link>
-);
+// const NavLink: React.FC<NavLinkProps> = ({ href, children, icon: Icon }) => (
+//   <Link
+//     href={href}
+//     className="group flex flex-col items-center text-amber-800 hover:text-amber-600 transition-colors duration-300"
+//   >
+//     <div className="bg-amber-100 p-2 rounded-full group-hover:bg-amber-200 transition-colors duration-300">
+//       <Icon className="h-5 w-5 md:h-6 md:w-6" />
+//     </div>
+//     <span className="mt-1 text-xs font-medium hidden md:inline">
+//       {children}
+//     </span>
+//   </Link>
+// );
 
 const MobileNavLink: React.FC<MobileNavLinkProps> = ({
   href,
@@ -108,21 +96,12 @@ export default function WaiterNavbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-            <NavLink href="/admin/dashboard" icon={Coffee}>
+            {/* <NavLink href="/waiter/dashboard" icon={Coffee}>
               Dashboard
             </NavLink>
-            <NavLink href="/admin/menu" icon={Utensils}>
+            <NavLink href="/waiter/menu" icon={Utensils}>
               Menu
-            </NavLink>
-            <NavLink href="/admin/reservations" icon={Calendar}>
-              Reservations
-            </NavLink>
-            <NavLink href="/admin/staff" icon={Users}>
-              Staff
-            </NavLink>
-            <NavLink href="/admin/reports" icon={BarChart}>
-              Reports
-            </NavLink>
+            </NavLink> */}
             {user?.user_name ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-amber-700 hidden lg:inline">
@@ -165,41 +144,20 @@ export default function WaiterNavbar() {
       {isOpen && (
         <div className="md:hidden bg-white shadow-lg absolute w-full">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <MobileNavLink
-              href="/admin/dashboard"
+            {/* <MobileNavLink
+              href="/waiter/dashboard"
               icon={Coffee}
               onClick={toggleMenu}
             >
               Dashboard
             </MobileNavLink>
             <MobileNavLink
-              href="/admin/menu"
+              href="/waiter/menu"
               icon={Utensils}
               onClick={toggleMenu}
             >
               Menu
-            </MobileNavLink>
-            <MobileNavLink
-              href="/admin/reservations"
-              icon={Calendar}
-              onClick={toggleMenu}
-            >
-              Reservations
-            </MobileNavLink>
-            <MobileNavLink
-              href="/admin/staff"
-              icon={Users}
-              onClick={toggleMenu}
-            >
-              Staff
-            </MobileNavLink>
-            <MobileNavLink
-              href="/admin/reports"
-              icon={BarChart}
-              onClick={toggleMenu}
-            >
-              Reports
-            </MobileNavLink>
+            </MobileNavLink> */}
             {user ? (
               <button
                 onClick={() => {

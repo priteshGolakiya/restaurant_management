@@ -1,11 +1,19 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { twMerge } from "tailwind-merge";
-import clsx from "clsx";
+import { DatePicker, Button, Input, message } from "antd";
+import {
+  UserOutlined,
+  PhoneOutlined,
+  CalendarOutlined,
+  TableOutlined,
+  FileTextOutlined,
+} from "@ant-design/icons";
+import moment from "moment";
 import axios from "axios";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import summaryAPI from "@/lib/summaryAPI";
+
+const { TextArea } = Input;
 
 interface Table {
   tableid: string;
@@ -35,11 +43,7 @@ const ReservationForm: React.FC = () => {
     selectedTables: [],
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [message, setMessage] = useState<{
-    text: string;
-    isError: boolean;
-  } | null>(null);
-  const [step, setStep] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState<number>(0);
 
   useEffect(() => {
     fetchTables();
@@ -47,14 +51,11 @@ const ReservationForm: React.FC = () => {
 
   const fetchTables = async () => {
     try {
-      const response = await axios.get("/api/table/");
+      const response = await axios.get(summaryAPI.admin.table.commonUlr);
       setTables(response.data.result);
     } catch (error) {
       console.error("Error fetching tables:", error);
-      setMessage({
-        text: "Failed to load tables. Please try again.",
-        isError: true,
-      });
+      message.error("Failed to load tables. Please try again.");
     }
   };
 
@@ -65,8 +66,8 @@ const ReservationForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (date: Date | null, name: string) => {
-    setFormData((prev) => ({ ...prev, [name]: date }));
+  const handleDateChange = (date: moment.Moment | null, name: string) => {
+    setFormData((prev) => ({ ...prev, [name]: date ? date.toDate() : null }));
   };
 
   const handleTableSelection = (tableid: string) => {
@@ -78,19 +79,17 @@ const ReservationForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsLoading(true);
-    setMessage(null);
 
     try {
-      const response = await axios.post("/api/reserve", {
+      const response = await axios.post(summaryAPI.common.bookTable.url, {
         ...formData,
         time_to: formData.time_to?.toISOString(),
         time_end: formData.time_end?.toISOString(),
       });
       if (response.data.success) {
-        setMessage({ text: "Reservation successful!", isError: false });
+        message.success("Reservation successful!");
         setFormData({
           customerName: "",
           customerNumber: "",
@@ -99,292 +98,184 @@ const ReservationForm: React.FC = () => {
           note: "",
           selectedTables: [],
         });
-        setStep(1);
+        setCurrentStep(0);
       } else {
-        setMessage({
-          text: response.data.message || "Reservation failed.",
-          isError: true,
-        });
+        message.error(response.data.message || "Reservation failed.");
       }
     } catch (error) {
-      console.log("error::: ", error);
+      console.error("error::: ", error);
       if (axios.isAxiosError(error) && error.response) {
-        setMessage({
-          text: error.response.data.message || "An unexpected error occurred",
-          isError: true,
-        });
+        message.error(
+          error.response.data.message || "An unexpected error occurred"
+        );
       } else {
-        setMessage({
-          text: "An unknown error occurred",
-          isError: true,
-        });
+        message.error("An unknown error occurred");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFinalSubmit = () => {
-    if (step === 3) {
-      const form = document.querySelector("form");
-      if (form) {
-        form.dispatchEvent(
-          new Event("submit", { cancelable: true, bubbles: true })
-        );
-      }
-    } else {
-      nextStep();
-    }
-  };
-
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 3));
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
-
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-6">
-              Personal Details
-            </h3>
-            <div className="space-y-4">
-              <Input
-                label="Customer Name"
-                name="customerName"
-                value={formData.customerName}
-                onChange={handleInputChange}
-                required
-              />
-              <Input
-                label="Customer Number"
-                name="customerNumber"
-                type="tel"
-                value={formData.customerNumber}
-                onChange={handleInputChange}
-                required
-                minLength={10}
-              />
-            </div>
-          </motion.div>
-        );
-      case 2:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-6">
-              Reservation Time
-            </h3>
-            <div className="space-y-4">
-              <div className="relative">
-                <label className="block text-lg font-semibold text-white mb-2">
-                  Start Time
-                </label>
-                <DatePicker
-                  selected={formData.time_to}
-                  onChange={(date) => handleDateChange(date, "time_to")}
-                  showTimeSelect
-                  dateFormat="MMMM d, yyyy h:mm aa"
-                  className="w-full rounded-lg px-4 py-3 bg-white text-gray-800 border-2 border-transparent focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 ease-in-out"
-                  required
-                />
-              </div>
-              <div className="relative">
-                <label className="block text-lg font-semibold text-white mb-2">
-                  End Time
-                </label>
-                <DatePicker
-                  selected={formData.time_end}
-                  onChange={(date) => handleDateChange(date, "time_end")}
-                  showTimeSelect
-                  dateFormat="MMMM d, yyyy h:mm aa"
-                  className="w-full rounded-lg px-4 py-3 bg-white text-gray-800 border-2 border-transparent focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 ease-in-out"
-                  required
-                />
-              </div>
-            </div>
-          </motion.div>
-        );
-      case 3:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-          >
-            <h3 className="text-2xl font-bold text-white mb-6">
-              Table Selection & Notes
-            </h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {tables.map((table) => (
-                  <TableSelection
-                    key={table.tableid}
-                    table={table}
-                    isSelected={formData.selectedTables.includes(table.tableid)}
-                    isReserved={table.isReserved}
-                    onSelect={() => handleTableSelection(table.tableid)}
-                  />
-                ))}
-              </div>
-              <textarea
-                name="note"
-                value={formData.note}
-                onChange={handleInputChange}
-                placeholder="Additional notes..."
-                className="w-full p-3 rounded-lg bg-white text-gray-800 border-2 border-transparent focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 ease-in-out"
-                rows={3}
-              />
-            </div>
-          </motion.div>
-        );
-    }
-  };
-
-  return (
-    <motion.div
-      className={twMerge(
-        "w-full max-w-2xl mx-auto mt-10 p-8 rounded-lg shadow-xl",
-        "bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600"
-      )}
-      initial={{ opacity: 0, y: -30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      <motion.h2
-        className="text-4xl font-bold text-white text-center mb-8"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.7, ease: "easeInOut" }}
-      >
-        Book Your Table
-      </motion.h2>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
-
-        <div className="flex justify-between mt-8">
-          {step > 1 && (
-            <motion.button
-              type="button"
-              onClick={prevStep}
-              whileHover={{ scale: 1.05 }}
-              className={twMerge(
-                "py-2 px-4 rounded-lg text-white font-semibold",
-                "bg-gray-500 hover:bg-gray-600",
-                "transition-all duration-300 ease-in-out"
-              )}
-            >
-              Previous
-            </motion.button>
-          )}
-          <motion.button
-            type="button"
-            onClick={handleFinalSubmit}
-            whileHover={{ scale: 1.05 }}
-            className={twMerge(
-              "py-2 px-4 rounded-lg text-white font-semibold",
-              "bg-green-500 hover:bg-green-600",
-              "transition-all duration-300 ease-in-out"
-            )}
-            disabled={isLoading}
-          >
-            {step === 3
-              ? isLoading
-                ? "Submitting..."
-                : "Confirm Reservation"
-              : "Next"}
-          </motion.button>
+  const steps = [
+    {
+      title: "Personal Details",
+      icon: <UserOutlined />,
+      content: (
+        <div className="space-y-4">
+          <Input
+            prefix={<UserOutlined className="site-form-item-icon" />}
+            placeholder="Customer Name"
+            name="customerName"
+            value={formData.customerName}
+            onChange={handleInputChange}
+            required
+          />
+          <Input
+            prefix={<PhoneOutlined className="site-form-item-icon" />}
+            placeholder="Customer Number"
+            name="customerNumber"
+            value={formData.customerNumber}
+            onChange={handleInputChange}
+            required
+          />
         </div>
-      </form>
+      ),
+    },
+    {
+      title: "Date & Time",
+      icon: <CalendarOutlined />,
+      content: (
+        <div className="space-y-4">
+          <DatePicker
+            showTime
+            placeholder="Start Time"
+            value={formData.time_to ? moment(formData.time_to) : null}
+            onChange={(date) => handleDateChange(date, "time_to")}
+            className="w-full"
+          />
+          <DatePicker
+            showTime
+            placeholder="End Time"
+            value={formData.time_end ? moment(formData.time_end) : null}
+            onChange={(date) => handleDateChange(date, "time_end")}
+            className="w-full"
+          />
+        </div>
+      ),
+    },
+    {
+      title: "Table Selection",
+      icon: <TableOutlined />,
+      content: (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {tables.map((table) => (
+            <motion.div
+              key={table.tableid}
+              whileHover={{ scale: 1.05 }}
+              className={`p-4 rounded-lg cursor-pointer ${
+                formData.selectedTables.includes(table.tableid)
+                  ? "bg-blue-100 border-blue-500"
+                  : "bg-white border-gray-200"
+              } ${
+                table.isReserved ? "opacity-50 cursor-not-allowed" : ""
+              } border-2 transition-all duration-300`}
+              onClick={() =>
+                !table.isReserved && handleTableSelection(table.tableid)
+              }
+            >
+              <p className="font-bold">Table {table.tableNumber}</p>
+              <p>{table.noOfSeats} seats</p>
+            </motion.div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      title: "Additional Notes",
+      icon: <FileTextOutlined />,
+      content: (
+        <TextArea
+          rows={4}
+          placeholder="Additional notes..."
+          name="note"
+          value={formData.note}
+          onChange={handleInputChange}
+        />
+      ),
+    },
+  ];
 
-      <AnimatePresence>
-        {message && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={twMerge(
-              "mt-6 p-4 rounded-md text-lg font-semibold",
-              message.isError
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
-            )}
-          >
-            {message.text}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
-
-const Input: React.FC<{
-  label: string;
-  name: string;
-  type?: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean;
-  minLength?: number;
-}> = ({ label, ...props }) => (
-  <div className="relative">
-    <label className="block text-lg font-semibold text-white mb-2">
-      {label}
-    </label>
-    <input
-      {...props}
-      className={twMerge(
-        "w-full rounded-lg px-4 py-3",
-        "bg-white text-gray-800 border-2 border-transparent",
-        "focus:outline-none focus:ring-4 focus:ring-indigo-300",
-        "transition-all duration-300 ease-in-out"
-      )}
-    />
-  </div>
-);
-
-const TableSelection: React.FC<{
-  table: Table;
-  isSelected: boolean;
-  isReserved: boolean;
-  onSelect: () => void;
-}> = ({ table, isSelected, isReserved, onSelect }) => {
   return (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      className={clsx(
-        "flex items-center p-4 rounded-lg cursor-pointer",
-        "shadow-lg border-2",
-        "transition-all duration-300 ease-in-out",
-        isSelected
-          ? "bg-indigo-100 border-indigo-500"
-          : "bg-white border-transparent hover:border-indigo-300",
+    <div className="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-2xl">
+      <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">
+        Book Your Perfect Table
+      </h1>
 
-        isReserved
-          ? "bg-red-500 border-indigo-500"
-          : "bg-blue-400 border-transparent hover:border-indigo-300"
-      )}
-      onClick={onSelect}
-    >
-      <input
-        type="checkbox"
-        checked={isSelected}
-        onChange={onSelect}
-        className="sr-only"
-      />
-      <div className="ml-2 text-sm font-medium text-gray-800">
-        <p className="font-bold">Table {table.tableNumber}</p>
-        <p>{table.noOfSeats} seats</p>
+      <div className="flex justify-center mb-8">
+        {steps.map((step, index) => (
+          <div
+            key={index}
+            className={`flex items-center ${
+              index < steps.length - 1 ? "w-full" : ""
+            }`}
+          >
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                index <= currentStep
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300 text-gray-600"
+              }`}
+            >
+              {step.icon}
+            </div>
+            {index < steps.length - 1 && (
+              <div
+                className={`flex-1 h-1 mx-2 ${
+                  index < currentStep ? "bg-blue-500" : "bg-gray-300"
+                }`}
+              />
+            )}
+          </div>
+        ))}
       </div>
-    </motion.div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h2 className="text-xl font-semibold mb-4">
+            {steps[currentStep].title}
+          </h2>
+          {steps[currentStep].content}
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="mt-8 flex justify-between">
+        <Button
+          onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+          disabled={currentStep === 0}
+        >
+          Previous
+        </Button>
+        <Button
+          type="primary"
+          onClick={() => {
+            if (currentStep === steps.length - 1) {
+              handleSubmit();
+            } else {
+              setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1));
+            }
+          }}
+          loading={isLoading}
+        >
+          {currentStep === steps.length - 1 ? "Submit" : "Next"}
+        </Button>
+      </div>
+    </div>
   );
 };
 

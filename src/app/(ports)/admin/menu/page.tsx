@@ -9,11 +9,12 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import ItemList from "@/app/components/menu/ItemList";
-import CategoryList from "@/app/components/menu/CategoryList";
-import AddTable from "@/app/components/menu/AddCategory";
-import AddItem from "@/app/components/menu/AddItem";
+import ItemList from "@/app/components/adminComponents/menu/ItemList";
+import CategoryList from "@/app/components/adminComponents/menu/CategoryList";
+import AddTable from "@/app/components/adminComponents/menu/AddCategory";
+import AddItem from "@/app/components/adminComponents/menu/AddItem";
 import axios from "axios";
+import summaryAPI from "@/lib/summaryAPI";
 
 type SidebarOption =
   | "category-list"
@@ -63,8 +64,12 @@ export default function SidebarDemo() {
 
   const fetchData = async () => {
     try {
-      const categoriesResponse = await axios.get(`/api/category`);
-      const itemsResponse = await axios.get(`/api/items`);
+      const categoriesResponse = await axios.get(
+        summaryAPI.admin.category.getallCategory.url
+      );
+      const itemsResponse = await axios.get(
+        summaryAPI.admin.items.getallItems.url
+      );
 
       setItems(itemsResponse.data);
       setCategories(categoriesResponse.data);

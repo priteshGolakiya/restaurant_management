@@ -1,7 +1,8 @@
 "use client";
 
-import AddTable from "@/app/components/reservations/AddTable";
-import TableList from "@/app/components/reservations/TableList";
+import AddTable from "@/app/components/adminComponents/reservations/AddTable";
+import TableList from "@/app/components/adminComponents/reservations/TableList";
+import summaryAPI from "@/lib/summaryAPI";
 import axios from "axios";
 import { List, Menu, PlusCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -30,7 +31,7 @@ export default function Reservations() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get("/api/table");
+      const response = await axios.get(summaryAPI.admin.table.getallTable.url);
       setTables(response.data.result);
       setIsLoading(false);
     } catch (error) {

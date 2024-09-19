@@ -1,5 +1,5 @@
 "use client";
-
+import summaryAPI from "@/lib/summaryAPI";
 import axios from "axios";
 import { Edit2, Trash2, UserPlus, X } from "lucide-react";
 import Link from "next/link";
@@ -52,7 +52,10 @@ const StaffComponent: React.FC<StaffComponentProps> = ({
     if (!selectedStaff) return;
 
     try {
-      await axios.put(`/api/staff/${selectedStaff.userid}`, formData);
+      await axios.put(
+        `${summaryAPI.admin.staff.commonUlr}/${selectedStaff.userid}`,
+        formData
+      );
       toast.success("Staff updated successfully!");
       setIsModalOpen(false);
       const updatedStaff = staffData.map((staff) =>
@@ -68,7 +71,7 @@ const StaffComponent: React.FC<StaffComponentProps> = ({
 
   const deleteUser = async (staff: StaffType) => {
     try {
-      await axios.delete(`/api/staff/${staff.userid}`);
+      await axios.delete(`${summaryAPI.admin.staff.commonUlr}/${staff.userid}`);
       toast.success("Staff deleted successfully!");
       setStaffData(staffData.filter((item) => item.userid !== staff.userid));
     } catch (error) {

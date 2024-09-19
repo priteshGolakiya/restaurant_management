@@ -12,8 +12,9 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const path = request.nextUrl.pathname;
 
-    console.log("Path requested:", path);
-    console.log("Token found:", token);
+    if (request.nextUrl.pathname === '/reserve') {
+        return NextResponse.next();
+    }
 
     if (!token) {
         return redirectToLogin(request, "Please log in to access this page");
@@ -22,20 +23,17 @@ export async function middleware(request: NextRequest) {
     try {
         const user = await decodeToken(token);
 
-        console.log("User decoded from token:", user);
-
         if (!user.isactive) {
             return redirectToLogin(request, "Your account is not active. Please contact support.");
         }
 
         const allowedPaths = {
-            admin: ['/admin'],
-            waiter: ['/waiter'],
-            manager: ['/manager']
+            admin: ['/admin', '/api/admin'],
+            waiter: ['/waiter', '/api/waiter'],
+            manager: ['/manager', '/api/manager']
         };
 
         const userAllowedPaths = allowedPaths[user.role as keyof typeof allowedPaths] || [];
-        console.log("User allowed paths:", userAllowedPaths);
 
         if (user.role === 'admin') {
             return NextResponse.next();
@@ -49,7 +47,6 @@ export async function middleware(request: NextRequest) {
         return redirectToLogin(request, "Invalid or expired token. Please log in again.");
     }
 }
-
 
 function redirectToLogin(request: NextRequest, message: string) {
     const url = request.nextUrl.clone();
@@ -100,5 +97,5 @@ function isJwtPayload(payload: JWTPayload): payload is JwtPayload {
 }
 
 export const config = {
-    matcher: ['/admin/:path*', '/waiter/:path*', '/manager/:path*'],
+    matcher: ['/admin/:path*', '/waiter/:path*', '/manager/:path*', '/api/admin/:path*', '/api/waiter/:path*', '/api/manager/:path*'],
 };
