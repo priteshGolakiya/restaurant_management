@@ -1,13 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { LogIn, Home, Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { useSearchParams, useRouter } from "next/navigation";
 import { useAppDispatch } from "@/lib/redux/hooks/hooks";
 import { setUserDetails } from "@/lib/redux/slice/userSlice";
 import summaryAPI from "@/lib/summaryAPI";
+import { message } from "antd";
+import axios from "axios";
+import { Eye, EyeOff, Home, LogIn } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -16,15 +16,15 @@ const LoginPage = () => {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const message = searchParams.get("message");
+  const qeryMessage = searchParams.get("message");
 
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (message) {
-      setErrorMessage(message);
+    if (qeryMessage) {
+      setErrorMessage(qeryMessage);
     }
-  }, [message]);
+  }, [qeryMessage]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -43,7 +43,7 @@ const LoginPage = () => {
     try {
       const response = await axios.post(summaryAPI.common.login.url, formData);
 
-      toast.success(response.data.message);
+      message.success(response.data.message);
 
       setFormData({
         email: "",
@@ -56,7 +56,7 @@ const LoginPage = () => {
       router.push("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        toast.error(error?.response?.data.message);
+        message.error(error?.response?.data.message);
         setErrorMessage(
           error.response?.data?.message || "Invalid email or password"
         );

@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Form,
   Input,
@@ -9,8 +8,14 @@ import {
   List,
   Typography,
   message,
+  Modal,
 } from "antd";
-import { PlusOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import {
+  MinusOutlined,
+  PlusOutlined,
+  ShoppingCartOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
 import summaryAPI from "@/lib/summaryAPI";
 
@@ -54,50 +59,45 @@ interface FormValues {
   note?: string;
 }
 
-const NewOrderForm: React.FC = () => {
+interface NewOrderFormProps {
+  tables: TableNumber[];
+  items: Item[];
+  fetchAvailableTable: () => void;
+  fetchTableData: () => void;
+}
+
+const NewOrderForm: React.FC<NewOrderFormProps> = ({
+  tables,
+  items,
+  fetchAvailableTable,
+  fetchTableData,
+}) => {
   const [form] = Form.useForm<FormValues>();
-  const [tableNumbers, setTableNumbers] = useState<TableNumber[]>([]);
-  const [items, setItems] = useState<Item[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-
-  useEffect(() => {
-    fetchTableNumbers();
-    fetchItems();
-  }, []);
-
-  const fetchTableNumbers = async () => {
-    try {
-      const response = await axios.get<{ result: TableNumber[] }>(
-        summaryAPI.waiter.tables.commaUrl
-      );
-      setTableNumbers(response.data.result);
-    } catch (error) {
-      message.error("Failed to fetch table numbers");
-    }
-  };
-
-  const fetchItems = async () => {
-    try {
-      const response = await axios.get<Item[]>(
-        summaryAPI.waiter.items.commonUrl
-      );
-      setItems(response.data);
-    } catch (error) {
-      message.error("Failed to fetch items");
-    }
-  };
+  const [quantity, setQuantity] = useState(1);
+  const [editingItem, setEditingItem] = useState<OrderItem | null>(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const onFinish = async (values: FormValues) => {
     const orderData = {
-      ...values,
-      items: orderItems,
+      tableNumber: values.tableNumber,
+      items: orderItems.map((item) => ({
+        itemId: item.item,
+        quantity: item.quantity,
+        note: item.note || "",
+      })),
     };
 
     try {
-      const response = await axios.post("/api/place-order", orderData);
+      const response = await axios.post(
+        summaryAPI.waiter.placeOrder.placeOrder.url,
+        orderData
+      );
       if (response.status === 200) {
         message.success("Order placed successfully");
         form.resetFields();
+        fetchAvailableTable();
+        fetchTableData();
         setOrderItems([]);
       }
     } catch (error) {
@@ -106,18 +106,53 @@ const NewOrderForm: React.FC = () => {
   };
 
   const addItem = () => {
-    form.validateFields(["item", "quantity", "note"]).then((values) => {
+    form.validateFields(["item", "note"]).then((values) => {
       const newItem: OrderItem = {
         ...values,
+        quantity,
         key: Date.now(),
       };
       setOrderItems([...orderItems, newItem]);
       form.setFieldsValue({
         item: undefined,
-        quantity: undefined,
         note: undefined,
       });
+      setQuantity(1);
     });
+  };
+
+  const removeItem = (key: number) => {
+    setOrderItems(orderItems.filter((item) => item.key !== key));
+  };
+
+  const editItem = (item: OrderItem) => {
+    setEditingItem(item);
+    setIsEditModalVisible(true);
+  };
+
+  const handleEditModalOk = () => {
+    if (editingItem) {
+      setOrderItems(
+        orderItems.map((item) =>
+          item.key === editingItem.key ? editingItem : item
+        )
+      );
+    }
+    setIsEditModalVisible(false);
+    setEditingItem(null);
+  };
+
+  const handleEditModalCancel = () => {
+    setIsEditModalVisible(false);
+    setEditingItem(null);
+  };
+
+  const incrementQuantity = () => {
+    setQuantity((prev) => prev + 1);
+  };
+
+  const decrementQuantity = () => {
+    setQuantity((prev) => Math.max(1, prev - 1));
   };
 
   return (
@@ -132,8 +167,8 @@ const NewOrderForm: React.FC = () => {
           rules={[{ required: true, message: "Please select a table number" }]}
         >
           <Select placeholder="Select table number">
-            {tableNumbers.map((table) => (
-              <Option key={table.tableid} value={table.tableid}>
+            {tables.map((table) => (
+              <Option key={table.tableid} value={Number(table.tableid)}>
                 {table.tableNumber}
               </Option>
             ))}
@@ -141,11 +176,7 @@ const NewOrderForm: React.FC = () => {
         </Form.Item>
 
         <div className="bg-gray-100 p-4 rounded-md mb-4">
-          <Form.Item
-            name="item"
-            label="Item"
-            rules={[{ required: true, message: "Please select an item" }]}
-          >
+          <Form.Item name="item" label="Item">
             <Select
               showSearch
               placeholder="Search for an item"
@@ -160,20 +191,26 @@ const NewOrderForm: React.FC = () => {
                 <Option
                   key={item.itemid}
                   value={item.itemid}
-                  label={item.itemname}
+                  label={`${item.itemname} - ₹${item.price}`}
                 >
-                  {item.itemname} - ${item.price}
+                  {item.itemname} - ₹{item.price}
                 </Option>
               ))}
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="quantity"
-            label="Quantity"
-            rules={[{ required: true, message: "Please enter quantity" }]}
-          >
-            <InputNumber min={1} className="w-full" />
+          <Form.Item label="Quantity">
+            <div className="flex items-center">
+              <Button onClick={decrementQuantity} icon={<MinusOutlined />} />
+              <InputNumber
+                min={1}
+                value={quantity}
+                onChange={(value) => setQuantity(value || 1)}
+                className="mx-2"
+                style={{ width: "40px" }}
+              />
+              <Button onClick={incrementQuantity} icon={<PlusOutlined />} />
+            </div>
           </Form.Item>
 
           <Form.Item name="note" label="Note">
@@ -201,21 +238,46 @@ const NewOrderForm: React.FC = () => {
           }
           bordered
           dataSource={orderItems}
-          renderItem={(item) => (
-            <List.Item className="px-4 py-2 border-b last:border-b-0">
-              <Typography.Text strong>
-                {items.find((i) => i.itemid === item.item)?.itemname}
-              </Typography.Text>
-              <Typography.Text className="ml-2">
-                Quantity: {item.quantity}
-              </Typography.Text>
-              {item.note && (
-                <Typography.Text className="ml-2 text-gray-500">
-                  Note: {item.note}
-                </Typography.Text>
-              )}
-            </List.Item>
-          )}
+          renderItem={(item) => {
+            const currentItem = items.find((i) => i.itemid === item.item);
+            return (
+              <List.Item
+                className="px-4 py-2 border-b last:border-b-0 flex justify-between"
+                actions={[
+                  <Button
+                    onClick={() => editItem(item)}
+                    size="small"
+                    key="edit"
+                    icon={<EditOutlined />}
+                  >
+                    Edit
+                  </Button>,
+                  <Button
+                    danger
+                    onClick={() => removeItem(item.key)}
+                    size="small"
+                    key="remove"
+                  >
+                    Remove
+                  </Button>,
+                ]}
+              >
+                <div>
+                  <Typography.Text strong>
+                    {currentItem?.itemname}
+                  </Typography.Text>
+                  <Typography.Text className="ml-2">
+                    Quantity: {item.quantity}
+                  </Typography.Text>
+                  {item.note && (
+                    <Typography.Text className="ml-2 text-gray-500">
+                      Note: {item.note}
+                    </Typography.Text>
+                  )}
+                </div>
+              </List.Item>
+            );
+          }}
         />
 
         <Form.Item>
@@ -229,6 +291,86 @@ const NewOrderForm: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
+
+      <Modal
+        title="Edit Item"
+        open={isEditModalVisible}
+        onOk={handleEditModalOk}
+        onCancel={handleEditModalCancel}
+      >
+        {editingItem && (
+          <Form layout="vertical">
+            <Form.Item label="Item">
+              <Select
+                showSearch
+                placeholder="Search for an item"
+                value={editingItem.item}
+                onChange={(value) =>
+                  setEditingItem({ ...editingItem, item: value })
+                }
+                filterOption={(input, option) =>
+                  (option?.label as string)
+                    .toLowerCase()
+                    .indexOf(input.toLowerCase()) >= 0
+                }
+                style={{ width: "100%" }}
+              >
+                {items.map((item) => (
+                  <Option
+                    key={item.itemid}
+                    value={item.itemid}
+                    label={`${item.itemname} - ₹${item.price}`}
+                  >
+                    {item.itemname} - ₹{item.price}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item label="Quantity">
+              <div className="flex items-center">
+                <Button
+                  onClick={() => {
+                    if (editingItem.quantity > 1) {
+                      setEditingItem({
+                        ...editingItem,
+                        quantity: editingItem.quantity - 1,
+                      });
+                    }
+                  }}
+                  icon={<MinusOutlined />}
+                />
+                <InputNumber
+                  min={1}
+                  value={editingItem.quantity}
+                  onChange={(value) =>
+                    setEditingItem({ ...editingItem, quantity: value || 1 })
+                  }
+                  className="mx-2"
+                  style={{ width: "40px" }}
+                />
+                <Button
+                  onClick={() =>
+                    setEditingItem({
+                      ...editingItem,
+                      quantity: editingItem.quantity + 1,
+                    })
+                  }
+                  icon={<PlusOutlined />}
+                />
+              </div>
+            </Form.Item>
+            <Form.Item label="Note">
+              <TextArea
+                rows={2}
+                value={editingItem.note}
+                onChange={(e) =>
+                  setEditingItem({ ...editingItem, note: e.target.value })
+                }
+              />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
     </div>
   );
 };

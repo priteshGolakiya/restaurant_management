@@ -1,10 +1,11 @@
 "use client";
 
+import CreateExistingOrderForm from "@/app/components/waiterComponents/dashboard/createExistingOrderForm";
 import NewOrderForm from "@/app/components/waiterComponents/dashboard/newOrderForm";
 import WaiterTableList from "@/app/components/waiterComponents/dashboard/waiterTableList";
 import summaryAPI from "@/lib/summaryAPI";
 import { MenuOutlined } from "@ant-design/icons";
-import { Button, Modal } from "antd";
+import { Button, message, Modal } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
@@ -19,25 +20,58 @@ interface TableNumber {
   note: string | null;
 }
 
+interface Item {
+  itemid: number;
+  itemname: string;
+  description: string;
+  price: string;
+  categoryid: string;
+  isactive: string;
+  itemimage: {
+    img1: string;
+  };
+}
+
 const WaiterHome: React.FC = () => {
   const [isNewOrderModalVisible, setIsNewOrderModalVisible] = useState(false);
   const [selectedTable, setSelectedTable] = useState<TableNumber | null>(null);
   const [tables, setTables] = useState<TableNumber[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
+  const [availableTables, setAvailableTables] = useState<TableNumber[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTableNumbers();
-  }, []);
-
-  const fetchTableNumbers = async () => {
+  const fetchAvailableTable = async () => {
+    const response = await axios.get(
+      `${summaryAPI.waiter.tables.commaUrl}/available-table`
+    );
+    const data = response.data.result.availableTables;
+    setAvailableTables(data);
+  };
+  const fetchTableData = async () => {
     try {
-      const response = await axios.get<{ result: TableNumber[] }>(
-        summaryAPI.waiter.tables.commaUrl
-      );
-      setTables(response.data.result);
+      const tablesResponse = await axios.get(summaryAPI.waiter.tables.commaUrl);
+      setTables(tablesResponse.data.result.tablesNeedingAttention);
+      setLoading(false);
     } catch (error) {
-      console.error("Failed to fetch table numbers", error);
+      console.error("Error fetching data:", error);
+      message.error("Error fetching data");
     }
   };
+  const fetchItemsData = async () => {
+    try {
+      const itemsResponse = await axios.get(summaryAPI.waiter.items.commonUrl);
+      setItems(itemsResponse.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      message.error("Error fetching data");
+    }
+  };
+  useEffect(() => {
+    fetchTableData();
+    fetchItemsData();
+    fetchAvailableTable();
+  }, []);
 
   const showNewOrderModal = () => {
     setIsNewOrderModalVisible(true);
@@ -69,6 +103,7 @@ const WaiterHome: React.FC = () => {
           <WaiterTableList
             tables={tables}
             onTableClick={handleTableModalOpen}
+            loading={loading}
           />
         </div>
       </div>
@@ -79,7 +114,12 @@ const WaiterHome: React.FC = () => {
         onOk={handleModalClose}
         onCancel={handleModalClose}
       >
-        <NewOrderForm />
+        <NewOrderForm
+          tables={availableTables}
+          items={items}
+          fetchAvailableTable={fetchAvailableTable}
+          fetchTableData={fetchTableData}
+        />
       </Modal>
 
       <Modal
@@ -90,10 +130,10 @@ const WaiterHome: React.FC = () => {
       >
         {selectedTable && (
           <>
-            <p>Status: {selectedTable.isActive ? "Occupied" : "Available"}</p>
-            <p>Seats: {selectedTable.noOfSeats}</p>
-            <p>Reserved: {selectedTable.isReserved ? "Yes" : "No"}</p>
-            {selectedTable.note && <p>Note: {selectedTable.note}</p>}
+            <CreateExistingOrderForm
+              selectedTable={selectedTable}
+              items={items}
+            />
           </>
         )}
       </Modal>

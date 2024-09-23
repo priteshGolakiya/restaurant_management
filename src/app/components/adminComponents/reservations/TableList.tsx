@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
 import { AnimatedTableGrid } from "@/app/ui/animated-tooltip";
-import { motion } from "framer-motion";
-import axios from "axios";
-import { cn } from "@/lib/utils";
 import SkeletonLoader from "@/app/ui/SkeletonLoader";
-import { toast } from "react-toastify";
 import summaryAPI from "@/lib/summaryAPI";
+import { cn } from "@/lib/utils";
+import { message } from "antd";
+import axios from "axios";
+import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
 
 interface TableItem {
   tableid: string;
@@ -49,7 +49,7 @@ const TableList: React.FC<TableListProps> = ({
         }
       );
       if (response.data.success) {
-        toast.success(response.data.message);
+        message.success(response.data.message);
         fetchData();
       } else {
         console.error("Failed to update table status:", response.data.message);

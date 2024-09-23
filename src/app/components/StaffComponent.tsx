@@ -1,10 +1,10 @@
 "use client";
 import summaryAPI from "@/lib/summaryAPI";
+import { message } from "antd";
 import axios from "axios";
 import { Edit2, Trash2, UserPlus, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "react-toastify";
 
 interface StaffType {
   userid: number;
@@ -56,7 +56,7 @@ const StaffComponent: React.FC<StaffComponentProps> = ({
         `${summaryAPI.admin.staff.commonUlr}/${selectedStaff.userid}`,
         formData
       );
-      toast.success("Staff updated successfully!");
+      message.success("Staff updated successfully!");
       setIsModalOpen(false);
       const updatedStaff = staffData.map((staff) =>
         staff.userid === selectedStaff.userid
@@ -65,17 +65,17 @@ const StaffComponent: React.FC<StaffComponentProps> = ({
       );
       setStaffData(updatedStaff);
     } catch (error) {
-      toast.error("Error updating staff.");
+      message.error("Error updating staff.");
     }
   };
 
   const deleteUser = async (staff: StaffType) => {
     try {
       await axios.delete(`${summaryAPI.admin.staff.commonUlr}/${staff.userid}`);
-      toast.success("Staff deleted successfully!");
+      message.success("Staff deleted successfully!");
       setStaffData(staffData.filter((item) => item.userid !== staff.userid));
     } catch (error) {
-      toast.error("Error deleting staff.");
+      message.error("Error deleting staff.");
     }
   };
 

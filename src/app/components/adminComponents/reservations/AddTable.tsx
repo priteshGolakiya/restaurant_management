@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import axios from "axios";
-import { toast } from "react-toastify";
 import summaryAPI from "@/lib/summaryAPI";
+import { message } from "antd";
+import axios from "axios";
+import { motion } from "framer-motion";
+import React, { useState } from "react";
 
 const AddTable = () => {
   const [noOfSeats, setNoOfSeats] = useState<number>(0);
@@ -21,14 +21,14 @@ const AddTable = () => {
         }
       );
       if (response.data.success) {
-        toast.success(response.data.message);
+        message.success(response.data.message);
         setNoOfSeats(0);
         setTableNumber(0);
       } else {
-        toast.error(response.data.message || "An error occurred");
+        message.error(response.data.message || "An error occurred");
       }
     } catch (error) {
-      toast.error("An error occurred");
+      message.error("An error occurred");
     }
   };
 
