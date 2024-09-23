@@ -10,7 +10,7 @@ export async function GET() {
         client = await typedPool.connect();
         await client.query('BEGIN');
 
-        const checkQuery = `SELECT * FROM "ItemMaster" WHERE isactive=true`;
+        const checkQuery = `SELECT * FROM "ItemMaster" WHERE isactive = true`;
         const data = await client.query(checkQuery);
         const result = data.rows;
 

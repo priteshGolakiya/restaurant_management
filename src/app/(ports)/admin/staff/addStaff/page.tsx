@@ -1,5 +1,6 @@
 "use client";
 import summaryAPI from "@/lib/summaryAPI";
+import { message } from "antd";
 import axios from "axios";
 import { ArrowBigLeftDash, Eye, EyeOff, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -47,7 +48,7 @@ const AddStaff = () => {
         role: formData.role,
       });
 
-      toast.success(response.data.message || "Staff created successfully!");
+      message.success(response.data.message || "Staff created successfully!");
       setFormData({
         fullName: "",
         userName: "",

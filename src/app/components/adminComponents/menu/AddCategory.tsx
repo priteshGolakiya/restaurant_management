@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import axios from "axios";
-import { toast } from "react-toastify";
 import summaryAPI from "@/lib/summaryAPI";
+import { message } from "antd";
+import axios from "axios";
+import { motion } from "framer-motion";
+import React, { useState } from "react";
 
 const AddCategory = () => {
   const [category, setCategory] = useState("");
@@ -18,7 +18,7 @@ const AddCategory = () => {
       }
     );
     if (response.data.success) {
-      toast.success(response.data.messages);
+      message.success(response.data.messages);
     }
   };
 

@@ -68,7 +68,15 @@ const summaryAPI = {
                 url: `${waiterBackendDomain}/items`,
                 method: 'GET'
             },
-        }
+        },
+        placeOrder: {
+            commonUrl: `${waiterBackendDomain}/place-order`,
+            placeOrder: {
+                url: `${waiterBackendDomain}/place-order`,
+                method: 'POST'
+            },
+        },
+
     }
 }
 
