@@ -1,23 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useAppSelector } from "@/lib/redux/hooks/hooks";
+import Cookies from "js-cookie";
 import {
-  Menu,
-  X,
-  User,
-  LogOut,
-  Coffee,
-  Utensils,
-  Calendar,
-  Users,
   BarChart,
   ChefHat,
+  Coffee,
+  LogOut,
   LucideIcon,
+  Menu,
+  User,
+  X,
 } from "lucide-react";
-import Cookies from "js-cookie";
-import { useAppSelector } from "@/lib/redux/hooks/hooks";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 interface NavLinkProps {
   href: string;
@@ -108,19 +105,10 @@ export default function ManagerNavbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-            <NavLink href="/admin/dashboard" icon={Coffee}>
+            <NavLink href="/manager" icon={Coffee}>
               Dashboard
             </NavLink>
-            <NavLink href="/admin/menu" icon={Utensils}>
-              Menu
-            </NavLink>
-            <NavLink href="/admin/reservations" icon={Calendar}>
-              Reservations
-            </NavLink>
-            <NavLink href="/admin/staff" icon={Users}>
-              Staff
-            </NavLink>
-            <NavLink href="/admin/reports" icon={BarChart}>
+            <NavLink href="/manager/reports" icon={BarChart}>
               Reports
             </NavLink>
             {user?.user_name ? (
@@ -165,36 +153,11 @@ export default function ManagerNavbar() {
       {isOpen && (
         <div className="md:hidden bg-white shadow-lg absolute w-full">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <MobileNavLink
-              href="/admin/dashboard"
-              icon={Coffee}
-              onClick={toggleMenu}
-            >
+            <MobileNavLink href="/manager/" icon={Coffee} onClick={toggleMenu}>
               Dashboard
             </MobileNavLink>
             <MobileNavLink
-              href="/admin/menu"
-              icon={Utensils}
-              onClick={toggleMenu}
-            >
-              Menu
-            </MobileNavLink>
-            <MobileNavLink
-              href="/admin/reservations"
-              icon={Calendar}
-              onClick={toggleMenu}
-            >
-              Reservations
-            </MobileNavLink>
-            <MobileNavLink
-              href="/admin/staff"
-              icon={Users}
-              onClick={toggleMenu}
-            >
-              Staff
-            </MobileNavLink>
-            <MobileNavLink
-              href="/admin/reports"
+              href="/manager/reports"
               icon={BarChart}
               onClick={toggleMenu}
             >

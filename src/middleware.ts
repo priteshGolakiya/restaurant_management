@@ -36,12 +36,12 @@ export async function middleware(request: NextRequest) {
         const userAllowedPaths = allowedPaths[user.role as keyof typeof allowedPaths] || [];
 
         if (user.role === 'admin') {
-            return NextResponse.next();
+            return appendUserDataToRequest(request, user);
         } else if (!userAllowedPaths.some(allowedPath => path.startsWith(allowedPath))) {
             return redirectToAllowedPath(request, user.role, "You don't have access to this page.");
         }
 
-        return NextResponse.next();
+        return appendUserDataToRequest(request, user);
     } catch (error) {
         console.error('Token verification failed:', error);
         return redirectToLogin(request, "Invalid or expired token. Please log in again.");
@@ -94,6 +94,20 @@ function isJwtPayload(payload: JWTPayload): payload is JwtPayload {
         'user_name' in payload &&
         'role' in payload
     );
+}
+
+function appendUserDataToRequest(request: NextRequest, user: JwtPayload) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-data', JSON.stringify(user));
+
+    const response = NextResponse.next({
+        request: {
+            ...request,
+            headers: requestHeaders,
+        },
+    });
+
+    return response;
 }
 
 export const config = {
