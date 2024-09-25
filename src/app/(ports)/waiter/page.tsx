@@ -1,13 +1,12 @@
-"use client";
-
+"use client"
+import React, { useEffect, useState } from "react";
+import { Button, message, Modal } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
+import axios from "axios";
 import CreateExistingOrderForm from "@/app/components/waiterComponents/dashboard/createExistingOrderForm";
 import NewOrderForm from "@/app/components/waiterComponents/dashboard/newOrderForm";
 import WaiterTableList from "@/app/components/waiterComponents/dashboard/waiterTableList";
 import summaryAPI from "@/lib/summaryAPI";
-import { MenuOutlined } from "@ant-design/icons";
-import { Button, message, Modal } from "antd";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
 
 interface TableNumber {
   tableid: number;
@@ -32,6 +31,13 @@ interface Item {
   };
 }
 
+interface OrderItem {
+  key: number;
+  itemId: number;
+  quantity: number;
+  note?: string;
+}
+
 const WaiterHome: React.FC = () => {
   const [isNewOrderModalVisible, setIsNewOrderModalVisible] = useState(false);
   const [selectedTable, setSelectedTable] = useState<TableNumber | null>(null);
@@ -39,6 +45,9 @@ const WaiterHome: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [availableTables, setAvailableTables] = useState<TableNumber[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orderItems, setOrderItems] = useState<{
+    [tableId: number]: OrderItem[];
+  }>({});
 
   const fetchAvailableTable = async () => {
     const response = await axios.get(
@@ -47,6 +56,7 @@ const WaiterHome: React.FC = () => {
     const data = response.data.result.availableTables;
     setAvailableTables(data);
   };
+
   const fetchTableData = async () => {
     try {
       const tablesResponse = await axios.get(summaryAPI.waiter.tables.commaUrl);
@@ -57,6 +67,7 @@ const WaiterHome: React.FC = () => {
       message.error("Error fetching data");
     }
   };
+
   const fetchItemsData = async () => {
     try {
       const itemsResponse = await axios.get(summaryAPI.waiter.items.commonUrl);
@@ -67,6 +78,7 @@ const WaiterHome: React.FC = () => {
       message.error("Error fetching data");
     }
   };
+
   useEffect(() => {
     fetchTableData();
     fetchItemsData();
@@ -84,6 +96,13 @@ const WaiterHome: React.FC = () => {
   const handleModalClose = () => {
     setIsNewOrderModalVisible(false);
     setSelectedTable(null);
+  };
+
+  const updateOrderItems = (tableId: number, items: OrderItem[]) => {
+    setOrderItems((prevState) => ({
+      ...prevState,
+      [tableId]: items,
+    }));
   };
 
   return (
@@ -127,14 +146,17 @@ const WaiterHome: React.FC = () => {
         open={Boolean(selectedTable)}
         onOk={handleModalClose}
         onCancel={handleModalClose}
+        footer={null}
       >
         {selectedTable && (
-          <>
-            <CreateExistingOrderForm
-              selectedTable={selectedTable}
-              items={items}
-            />
-          </>
+          <CreateExistingOrderForm
+            selectedTable={selectedTable}
+            items={items}
+            orderItems={orderItems[selectedTable.tableid] || []}
+            updateOrderItems={(items) =>
+              updateOrderItems(selectedTable.tableid, items)
+            }
+          />
         )}
       </Modal>
     </div>

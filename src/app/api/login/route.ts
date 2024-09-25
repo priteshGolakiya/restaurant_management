@@ -56,7 +56,7 @@ export async function POST(req: Request) {
             message: "Login successful",
             payload,
             success: true,
-        }, { status: 201 });
+        }, { status: 200 });
 
         response.cookies.set('token', token, {
             httpOnly: false,

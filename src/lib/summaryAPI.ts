@@ -69,6 +69,10 @@ const summaryAPI = {
                 method: 'GET'
             },
         },
+        getAllOrder: {
+            commonUrl: `${waiterBackendDomain}/get-all-order`,
+            deleteOrder: `${waiterBackendDomain}/get-all-order`
+        },
         placeOrder: {
             commonUrl: `${waiterBackendDomain}/place-order`,
             placeOrder: {

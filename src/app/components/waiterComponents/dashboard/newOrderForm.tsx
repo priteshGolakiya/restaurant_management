@@ -9,6 +9,7 @@ import {
   Typography,
   message,
   Modal,
+  Divider,
 } from "antd";
 import {
   MinusOutlined,
@@ -87,13 +88,14 @@ const NewOrderForm: React.FC<NewOrderFormProps> = ({
         note: item.note || "",
       })),
     };
-
+    const hide = message.loading("Placing order...", 0);
     try {
       const response = await axios.post(
         summaryAPI.waiter.placeOrder.placeOrder.url,
         orderData
       );
       if (response.status === 200) {
+        hide();
         message.success("Order placed successfully");
         form.resetFields();
         fetchAvailableTable();
@@ -101,6 +103,7 @@ const NewOrderForm: React.FC<NewOrderFormProps> = ({
         setOrderItems([]);
       }
     } catch (error) {
+      hide();
       message.error("Failed to place order");
     }
   };
@@ -160,6 +163,7 @@ const NewOrderForm: React.FC<NewOrderFormProps> = ({
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
         New Order
       </h2>
+      <Divider style={{ borderColor: "#6B21A8" }} />
       <Form form={form} onFinish={onFinish} layout="vertical">
         <Form.Item
           name="tableNumber"
