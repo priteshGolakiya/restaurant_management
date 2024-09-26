@@ -5,7 +5,6 @@ import axios from "axios";
 import { ArrowBigLeftDash, Eye, EyeOff, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "react-toastify";
 
 const AddStaff = () => {
   const router = useRouter();
