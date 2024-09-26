@@ -156,7 +156,7 @@ const AddStaff = () => {
             </div>
           </div>
           <select
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             name="role"
             value={formData.role}
             onChange={handleChange}
