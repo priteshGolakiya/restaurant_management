@@ -99,7 +99,7 @@ const NewOrderForm: React.FC<NewOrderFormProps> = ({
     const hide = message.loading("Placing order...", 0);
     try {
       const response = await axios.post(
-        summaryAPI.waiter.placeOrder.placeOrder.url,
+        summaryAPI.manager.placeOrder.placeOrder.url,
         orderData
       );
       if (response.status === 200) {

@@ -11,3 +11,27 @@
 .no-visible-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.ant-pagination-custom {
+  @apply flex justify-center mt-4;
+}
+
+.ant-pagination-custom .ant-pagination-item-active {
+  @apply bg-indigo-600 border-indigo-600;
+}
+
+.ant-pagination-custom .ant-pagination-item-active a {
+  @apply text-white;
+}
+
+.ant-pagination-custom .ant-pagination-item:hover {
+  @apply border-indigo-600;
+}
+
+.ant-pagination-custom .ant-pagination-item:hover a {
+  @apply text-teal-500;
+}
+
+.ant-pagination-custom .ant-pagination-options {
+  @apply ml-4;
+}

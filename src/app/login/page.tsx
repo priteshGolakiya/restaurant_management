@@ -53,7 +53,16 @@ const LoginPage = () => {
       setErrorMessage("");
 
       dispatch(setUserDetails(response.data.payload));
-      router.push("/");
+      switch (response.data.payload.role) {
+        case "admin":
+          router.push("/admin");
+        case "manager":
+          router.push("/manager");
+        case "waiter":
+          router.push("/waiter");
+        default:
+          router.push("/");
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         message.error(error?.response?.data.message);

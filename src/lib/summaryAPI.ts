@@ -1,6 +1,7 @@
 const backendDomain = "/api/"
 const adminBackendDomain = "/api/admin"
 const waiterBackendDomain = "/api/waiter"
+const managerBackendDomain = "/api/manager"
 const summaryAPI = {
     common: {
         login: {
@@ -50,10 +51,43 @@ const summaryAPI = {
                 url: `${adminBackendDomain}/staff`,
                 method: 'GET'
             },
-        }
+        },
+        reports: {
+            getReports: `${adminBackendDomain}/get-reports`
+        },
     },
 
-    manager: {},
+    manager: {
+        tables: {
+            commaUrl: `${managerBackendDomain}/table`,
+            getAllTable: {
+                url: `${managerBackendDomain}/table`,
+                method: 'GET'
+            }
+        },
+        items: {
+            commonUrl: `${managerBackendDomain}/items`,
+            getAllItems: {
+                url: `${managerBackendDomain}/items`,
+                method: 'GET'
+            },
+        },
+        getAllOrder: {
+            commonUrl: `${managerBackendDomain}/get-all-order`,
+            deleteOrder: `${managerBackendDomain}/get-all-order`,
+            createBill: `${managerBackendDomain}/createBill`
+        },
+        placeOrder: {
+            commonUrl: `${managerBackendDomain}/place-order`,
+            placeOrder: {
+                url: `${managerBackendDomain}/place-order`,
+                method: 'POST'
+            },
+        },
+        reports: {
+            getReports: `${managerBackendDomain}/get-reports`
+        },
+    },
     waiter: {
         tables: {
             commaUrl: `${waiterBackendDomain}/table`,

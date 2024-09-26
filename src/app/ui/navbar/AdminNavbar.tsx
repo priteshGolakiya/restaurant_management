@@ -12,7 +12,6 @@ import {
   Utensils,
   Calendar,
   Users,
-  BarChart,
   ChefHat,
   LucideIcon,
 } from "lucide-react";
@@ -102,13 +101,13 @@ export default function AdminNavbar() {
                 <ChefHat className="h-6 w-6 md:h-8 md:w-8 text-white" />
               </div>
               <span className="text-xl md:text-2xl font-serif font-bold text-amber-800">
-                Gourmet<span className="text-emerald-700">Hub</span>
+                Restro<span className="text-emerald-700">Flex</span>
               </span>
             </Link>
           </div>
 
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-            <NavLink href="/admin/dashboard" icon={Coffee}>
+            <NavLink href="/admin/" icon={Coffee}>
               Dashboard
             </NavLink>
             <NavLink href="/admin/menu" icon={Utensils}>
@@ -119,9 +118,6 @@ export default function AdminNavbar() {
             </NavLink>
             <NavLink href="/admin/staff" icon={Users}>
               Staff
-            </NavLink>
-            <NavLink href="/admin/reports" icon={BarChart}>
-              Reports
             </NavLink>
             {user?.user_name ? (
               <div className="flex items-center space-x-4">
@@ -192,13 +188,6 @@ export default function AdminNavbar() {
               onClick={toggleMenu}
             >
               Staff
-            </MobileNavLink>
-            <MobileNavLink
-              href="/admin/reports"
-              icon={BarChart}
-              onClick={toggleMenu}
-            >
-              Reports
             </MobileNavLink>
             {user ? (
               <button
