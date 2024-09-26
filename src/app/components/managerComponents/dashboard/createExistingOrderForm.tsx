@@ -9,6 +9,7 @@ import {
   Typography,
   message,
   Modal,
+  Radio,
 } from "antd";
 import {
   MinusOutlined,
@@ -73,6 +74,7 @@ interface CreateExistingOrderFormProps {
   items: Item[];
   orderItems: OrderItem[];
   updateOrderItems: (items: OrderItem[]) => void;
+  onCreateBill: (billEntryId: number, paymentMethod: string) => void;
 }
 
 const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
@@ -80,6 +82,7 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
   items,
   orderItems,
   updateOrderItems,
+  onCreateBill,
 }) => {
   const [form] = Form.useForm<FormValues>();
   const [quantity, setQuantity] = useState(1);
@@ -90,11 +93,14 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
   );
   const [isEditOrderModalVisible, setIsEditOrderModalVisible] = useState(false);
   const [orderData, setOrderData] = useState<OrderData[]>([]);
+  const [isPaymentModModalVisible, setIsPaymentModModalVisible] =
+    useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
     try {
       const response = await axios.get(
-        `${summaryAPI.waiter.getAllOrder.commonUrl}/${selectedTable.tableid}`
+        `${summaryAPI.manager.getAllOrder.commonUrl}/${selectedTable.tableid}`
       );
       if (response.data.success) {
         setOrderData(response.data.orders);
@@ -128,7 +134,7 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
     const hide = message.loading("Placing order...", 0);
     try {
       const response = await axios.post(
-        summaryAPI.waiter.placeOrder.commonUrl,
+        summaryAPI.manager.placeOrder.commonUrl,
         orderData
       );
 
@@ -196,7 +202,7 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
     if (editingOrderItem) {
       try {
         await axios.put(
-          `${summaryAPI.waiter.getAllOrder.commonUrl}/${editingOrderItem.bill_details_id}`,
+          `${summaryAPI.manager.getAllOrder.commonUrl}/${editingOrderItem.bill_details_id}`,
           {
             billDetailsId: editingOrderItem.bill_details_id,
             itemId: editingOrderItem.item_id,
@@ -217,7 +223,7 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
 
   const removeOrderItem = async (bill_details_id: string) => {
     const response = await axios.delete(
-      `${summaryAPI.waiter.getAllOrder.deleteOrder}/${selectedTable.tableid}`,
+      `${summaryAPI.manager.getAllOrder.deleteOrder}/${selectedTable.tableid}`,
       {
         data: {
           billDetailsId: Number(bill_details_id),
@@ -239,11 +245,40 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
     setQuantity((prev) => Math.max(1, prev - 1));
   };
 
+  const createBill = async () => {
+    if (orderData.length > 0) {
+      setIsPaymentModModalVisible(true);
+    } else {
+      message.error("No orders to create a bill");
+    }
+  };
+
+  const handlePaymentModOk = () => {
+    if (!paymentMethod) {
+      message.error("Please select a payment method");
+    } else {
+      onCreateBill(orderData[0].bill_entry_id, paymentMethod);
+      setIsPaymentModModalVisible(false);
+    }
+  };
+
+  const handlePaymentModCancel = () => {
+    setIsPaymentModModalVisible(false);
+  };
   return (
     <div className="max-w-2xl mx-auto p-4 bg-white shadow-md rounded-lg">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
         Table Number: {selectedTable.tableNumber}
       </h2>
+      <Button
+        type="primary"
+        className="mb-4 w-full"
+        icon={<ShoppingCartOutlined />}
+        onClick={createBill}
+      >
+        Create Bill
+      </Button>
+
       <Form form={form} onFinish={onFinish} layout="vertical">
         <div className="bg-gray-100 p-4 rounded-md mb-4">
           <Form.Item name="itemId" label="Item">
@@ -366,43 +401,6 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
         <Typography.Title level={5} className="text-center">
           Previous Orders for Table {selectedTable.tableNumber}
         </Typography.Title>
-
-        {/* <List
-          bordered
-          dataSource={orderData}
-          renderItem={(order) => (
-            <List.Item
-              className="px-4 py-2 border-b last:border-b-0 flex justify-between"
-              actions={[
-                <Button
-                  onClick={() => editOrderItem(order)}
-                  size="small"
-                  key="edit"
-                  icon={<EditOutlined />}
-                >
-                  Edit
-                </Button>,
-              ]}
-            >
-              <div>
-                <Typography.Text strong>
-                  {
-                    items.find((i) => i.itemid === parseInt(order.item_id))
-                      ?.itemname
-                  }
-                </Typography.Text>
-                <Typography.Text className="ml-2">
-                  Quantity: {order.quantity}
-                </Typography.Text>
-                {order.note && (
-                  <Typography.Text className="ml-2 text-gray-500">
-                    Note: {order.note}
-                  </Typography.Text>
-                )}
-              </div>
-            </List.Item>
-          )}
-        /> */}
 
         <List
           className="mb-4 bg-gray-50 rounded-md"
@@ -627,6 +625,23 @@ const CreateExistingOrderForm: React.FC<CreateExistingOrderFormProps> = ({
             </Form.Item>
           </Form>
         )}
+      </Modal>
+
+      <Modal
+        title="Select Payment Method"
+        open={isPaymentModModalVisible}
+        onOk={handlePaymentModOk}
+        onCancel={handlePaymentModCancel}
+        okText="Confirm"
+      >
+        <Radio.Group
+          onChange={(e) => setPaymentMethod(e.target.value)}
+          value={paymentMethod}
+        >
+          <Radio value="cash">Cash</Radio>
+          <Radio value="upi">UPI</Radio>
+          <Radio value="card">Card</Radio>
+        </Radio.Group>
       </Modal>
     </div>
   );

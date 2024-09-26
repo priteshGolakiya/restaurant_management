@@ -18,7 +18,7 @@ interface Report {
   order_type: string;
 }
 
-const Home: React.FC = () => {
+const Reports: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   console.log("reports::: ", reports);
   const [loading, setLoading] = useState<boolean>(true);
@@ -34,7 +34,7 @@ const Home: React.FC = () => {
     try {
       const formattedDate = moment(date).format("YYYY-MM-DD");
       const response = await axios.get<{ success: boolean; data: Report[] }>(
-        `${summaryAPI.admin.reports.getReports}?date=${formattedDate}`
+        `${summaryAPI.manager.reports.getReports}?date=${formattedDate}`
       );
       if (response.data.success) {
         setReports(response.data.data);
@@ -300,4 +300,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default Reports;

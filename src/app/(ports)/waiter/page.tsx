@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { Button, message, Modal } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
@@ -38,8 +39,9 @@ interface OrderItem {
   note?: string;
 }
 
-const WaiterHome: React.FC = () => {
-  const [isNewOrderModalVisible, setIsNewOrderModalVisible] = useState(false);
+const ManagerPage: React.FC = () => {
+  const [isDineInModalVisible, setIsDineInModalVisible] = useState(false);
+  const [isTakeawayModalVisible, setIsTakeawayModalVisible] = useState(false);
   const [selectedTable, setSelectedTable] = useState<TableNumber | null>(null);
   const [tables, setTables] = useState<TableNumber[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -60,6 +62,7 @@ const WaiterHome: React.FC = () => {
   const fetchTableData = async () => {
     try {
       const tablesResponse = await axios.get(summaryAPI.waiter.tables.commaUrl);
+
       setTables(tablesResponse.data.result.tablesNeedingAttention);
       setLoading(false);
     } catch (error) {
@@ -85,8 +88,12 @@ const WaiterHome: React.FC = () => {
     fetchAvailableTable();
   }, []);
 
-  const showNewOrderModal = () => {
-    setIsNewOrderModalVisible(true);
+  const showDineInModal = () => {
+    setIsDineInModalVisible(true);
+  };
+
+  const showTakeawayModal = () => {
+    setIsTakeawayModalVisible(true);
   };
 
   const handleTableModalOpen = (table: TableNumber) => {
@@ -94,7 +101,8 @@ const WaiterHome: React.FC = () => {
   };
 
   const handleModalClose = () => {
-    setIsNewOrderModalVisible(false);
+    setIsDineInModalVisible(false);
+    setIsTakeawayModalVisible(false);
     setSelectedTable(null);
   };
 
@@ -110,13 +118,22 @@ const WaiterHome: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white shadow-lg rounded-lg p-6 relative">
           <div className="flex justify-between items-center mb-6">
-            <Button
-              icon={<MenuOutlined />}
-              onClick={showNewOrderModal}
-              className="bg-blue-500 text-white hover:bg-blue-600"
-            >
-              New Order
-            </Button>
+            <div>
+              <Button
+                icon={<MenuOutlined />}
+                onClick={showDineInModal}
+                className="bg-blue-500 text-white hover:bg-blue-600 mr-2"
+              >
+                New Dine-in Order
+              </Button>
+              <Button
+                icon={<MenuOutlined />}
+                onClick={showTakeawayModal}
+                className="bg-green-500 text-white hover:bg-green-600"
+              >
+                New Takeaway Order
+              </Button>
+            </div>
           </div>
 
           <WaiterTableList
@@ -128,8 +145,8 @@ const WaiterHome: React.FC = () => {
       </div>
 
       <Modal
-        title="New Order"
-        open={isNewOrderModalVisible}
+        title="New Dine-in Order"
+        open={isDineInModalVisible}
         onOk={handleModalClose}
         onCancel={handleModalClose}
       >
@@ -138,6 +155,24 @@ const WaiterHome: React.FC = () => {
           items={items}
           fetchAvailableTable={fetchAvailableTable}
           fetchTableData={fetchTableData}
+          onCancel={handleModalClose}
+          orderType="dinein"
+        />
+      </Modal>
+
+      <Modal
+        title="New Takeaway Order"
+        open={isTakeawayModalVisible}
+        onOk={handleModalClose}
+        onCancel={handleModalClose}
+      >
+        <NewOrderForm
+          tables={[]}
+          items={items}
+          fetchAvailableTable={fetchAvailableTable}
+          fetchTableData={fetchTableData}
+          onCancel={handleModalClose}
+          orderType="takeaway"
         />
       </Modal>
 
@@ -163,4 +198,4 @@ const WaiterHome: React.FC = () => {
   );
 };
 
-export default WaiterHome;
+export default ManagerPage;

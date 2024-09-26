@@ -92,7 +92,7 @@ export default function ManagerNavbar() {
         <div className="flex justify-between h-16 md:h-20">
           <div className="flex items-center">
             <Link
-              href="/"
+              href="/manager"
               className="flex-shrink-0 flex items-center space-x-2"
             >
               <div className="bg-amber-400 p-2 rounded-full">

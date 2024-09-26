@@ -11,13 +11,21 @@ interface OrderItem {
 }
 
 interface OrderData {
-    tableNumber: number;
+    tableNumber: number | null;
     items: OrderItem[];
+    orderType: 'dinein' | 'takeaway';
+    paymentMethod: 'upi' | 'cash' | 'card';
 }
 
 function validateOrderData(data: OrderData): { isValid: boolean; error?: string } {
-    if (typeof data.tableNumber !== 'number' || data.tableNumber <= 0) {
-        return { isValid: false, error: "Invalid table number" };
+    if (data.orderType === 'dinein' && (typeof data.tableNumber !== 'number' || data.tableNumber <= 0)) {
+        return { isValid: false, error: "Invalid table number for dine-in order" };
+    }
+    if (data.orderType === 'takeaway' && data.tableNumber !== null) {
+        return { isValid: false, error: "Table number should be null for takeaway orders" };
+    }
+    if (data.orderType !== 'dinein' && data.orderType !== 'takeaway') {
+        return { isValid: false, error: "Invalid order type" };
     }
 
     if (!Array.isArray(data.items) || data.items.length === 0) {
@@ -28,11 +36,9 @@ function validateOrderData(data: OrderData): { isValid: boolean; error?: string 
         if (typeof item.itemId !== 'string' || item.itemId.trim() === '') {
             return { isValid: false, error: "Invalid itemId" };
         }
-
         if (typeof item.quantity !== 'number' || item.quantity <= 0) {
             return { isValid: false, error: "Invalid quantity" };
         }
-
         if (item.note !== null && typeof item.note !== 'string') {
             return { isValid: false, error: "Note must be null or a string" };
         }
@@ -50,7 +56,8 @@ async function getNextBillNumber(client: PoolClient): Promise<number> {
         [todayStart]
     );
 
-    return result.rows[0].count + 1;
+    return Number(result.rows[0].count) + 1;
+
 }
 
 async function getNextKotNumber(client: PoolClient, billEntryId: number): Promise<number> {
@@ -60,6 +67,18 @@ async function getNextKotNumber(client: PoolClient, billEntryId: number): Promis
     );
 
     return result.rows[0].max_kotno + 1;
+}
+
+async function getNextTokenNumber(client: PoolClient): Promise<number> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const result = await client.query(
+        'SELECT COALESCE(MAX(token_no), 0) as max_token_no FROM "BillEntry" WHERE created_at >= $1 AND order_type = $2',
+        [todayStart, 'takeaway']
+    );
+
+    return result.rows[0].max_token_no + 1;
 }
 
 async function getNextOrderId(client: PoolClient): Promise<number> {
@@ -73,14 +92,15 @@ async function getNextOrderId(client: PoolClient): Promise<number> {
 export async function POST(request: Request) {
     let client: PoolClient | null = null;
     const userData = request.headers.get('x-user-data');
-    let userId = null
+    let userId = null;
 
     if (userData) {
         const parsedUserData = JSON.parse(userData);
-        userId = parsedUserData.userid
+        userId = parsedUserData.userid;
     } else {
         console.log("User id not found for placing order");
     }
+
     try {
         const data = await request.json();
         const validation = validateOrderData(data);
@@ -92,38 +112,30 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        const { tableNumber, items } = data as OrderData;
+        const { tableNumber, items, orderType, paymentMethod } = data as OrderData;
 
         client = await typedPool.connect();
         await client.query('BEGIN');
 
-        const tableExistenceResult = await client.query(
-            'SELECT tableid FROM "TableMaster" WHERE tableid = $1',
-            [tableNumber]
-        );
-
-        if (tableExistenceResult.rows.length === 0) {
-            throw new Error("Table does not exist");
-        }
-
-        const existingBillResult = await client.query(
-            'SELECT bill_entry_id, billno FROM "BillEntry" WHERE table_number = $1 AND is_paid = FALSE ORDER BY created_at DESC LIMIT 1',
-            [tableNumber]
-        );
-
-        let billEntryId: number, billNo: number;
-        if (existingBillResult.rows.length > 0) {
-            billEntryId = existingBillResult.rows[0].bill_entry_id;
-            billNo = existingBillResult.rows[0].billno;
-        } else {
-            billNo = await getNextBillNumber(client);
-
-            const newBillEntryResult = await client.query(
-                'INSERT INTO "BillEntry" (billno, bill_date, total_amount, created_at, updated_at, create_by, update_by, table_number, is_paid) VALUES ($1, CURRENT_TIMESTAMP, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, 1, $3, FALSE) RETURNING bill_entry_id',
-                [billNo, userId, tableNumber]
+        if (orderType === 'dinein') {
+            const tableExistenceResult = await client.query(
+                'SELECT tableid FROM "TableMaster" WHERE tableid = $1',
+                [tableNumber]
             );
-            billEntryId = newBillEntryResult.rows[0].bill_entry_id;
+
+            if (tableExistenceResult.rows.length === 0) {
+                throw new Error("Table does not exist");
+            }
         }
+
+        const billNo = await getNextBillNumber(client);
+        const tokenNo = orderType === 'takeaway' ? await getNextTokenNumber(client) : null;
+
+        const newBillEntryResult = await client.query(
+            'INSERT INTO "BillEntry" (billno, bill_date, total_amount, created_at, updated_at, create_by, update_by, table_number, is_paid, payment_mod, order_type, token_no) VALUES ($1, CURRENT_TIMESTAMP, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, $2, $3, $4, $5, $6, $7) RETURNING bill_entry_id',
+            [billNo, userId, tableNumber, orderType === 'takeaway', paymentMethod, orderType, tokenNo]
+        );
+        const billEntryId = newBillEntryResult.rows[0].bill_entry_id;
 
         const kotno = await getNextKotNumber(client, billEntryId);
         const orderId = await getNextOrderId(client);
@@ -161,7 +173,8 @@ export async function POST(request: Request) {
             success: true,
             billEntryId,
             billNo,
-            kotno
+            kotno,
+            tokenNo: orderType === 'takeaway' ? tokenNo : null
         }, { status: 200 });
     } catch (error) {
         if (client) await client.query('ROLLBACK');
